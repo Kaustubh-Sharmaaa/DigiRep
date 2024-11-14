@@ -459,7 +459,18 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 300 * 1024 * 1024 }, // 300MB
 }).single('file');
+app.get('/api/download/:id', (req, res) => {
+  const { id } = req.params;
+  const filePath = path.join(__dirname, 'uploads/', `${id}.pdf`);
 
+  // Check if file exists
+  res.download(filePath, `${id}.pdf`, (err) => {
+      if (err) {
+          console.error("Error downloading file:", err);
+          res.status(404).json({ error: "File not found" });
+      }
+  });
+});
 // Handle the file upload route
 app.post('/api/upload-file', (req, res) => {
   console.log("first:",req.body);
@@ -491,8 +502,53 @@ app.post('/api/upload-file', (req, res) => {
   });
 });
 
+app.post('/api/pending-ref-theses', (req, res) => {
+  const { advisorId } = req.body;
+  console.log("ADid:",advisorId);
+  const query = `
+     SELECT *
+        FROM thesis
+        WHERE refAdvisorAcceptance = 'PENDING'
+        AND refAdvisorId =?;
 
+  `;
 
+  db.query(query,[advisorId], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    console.log(results);
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+app.post('/api/pending-req-theses', (req, res) => {
+  const { advisorId } = req.body;
+
+  if (!advisorId) {
+      return res.status(400).json({ error: 'Advisor ID is required' });
+  }
+
+  // MySQL query to find theses with the advisorId in any of the specified columns
+  const query = `
+      SELECT *
+      FROM thesis
+      WHERE req1ReviewAdvisorId = ? OR req2ReviewAdvisorId = ? OR req3ReviewAdvisorId = ?
+  `;
+
+  db.query(query, [advisorId, advisorId, advisorId], (err, results) => {
+      if (err) {
+          console.error("Error retrieving theses:", err);
+          return res.status(500).json({ error: 'An error occurred while retrieving theses' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ message: 'No theses found for the specified advisor' });
+      }
+
+      // Send the results back to the client
+      res.status(200).json(results);
+  });
+});
 app.post('/api/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {

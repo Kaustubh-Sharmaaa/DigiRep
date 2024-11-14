@@ -11,6 +11,9 @@ import ForgotPassword from './components/ForgotPassword'; // Component for passw
 import Faq from './components/Faq'; // Component for Frequently Asked Questions
 import DepartmentAdminDashboard from './components/DepartmentAdminDashboard';
 import SubmitThesis from './components/SubmitThesis';
+import AdvisorDashboard from './components/AdvisorDashboard';
+import PendingRefTheses from './components/PendingRefDashboard';
+import PendingReqTheses from './components/PendingReqDashboard';
 import { BrowserRouter, Routes, Route } from "react-router-dom"; // Imports for routing
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -27,6 +30,9 @@ root.render(
         <Route path="/" element={<RegisterLogin />} />  {/* User Registration/Login component */}
         <Route path="/studentDashboard" element={<StudentDashboard />} />  {/* User Registration/Login component */}
         <Route path="/submit-thesis" element={ <SubmitThesis/>}/>
+        <Route path="/advisorDashboard" element={ <AdvisorDashboard/>}/>
+        <Route path="/pendingRefTheses" element={ <PendingRefTheses/>}/>
+        <Route path="/pendingReqTheses" element={ <PendingReqTheses/>}/>
        </Routes>
        </BrowserRouter>
   </React.StrictMode>

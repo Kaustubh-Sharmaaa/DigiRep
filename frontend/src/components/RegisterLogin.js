@@ -73,6 +73,10 @@ const RegisterLogin = () => {
                 {
                     navigate('/departmentAdminDashboard', { state: { user: data } })
                 }
+                if(data.role=="Advisor")
+                    {
+                        navigate('/advisorDashboard', { state: { user: data } })
+                    }
             }
             else{
               alert('Please wait until someone approves your profile');
