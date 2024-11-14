@@ -1,0 +1,247 @@
+/*File written by: Chevva,Meghana, Student ID: 1002114458*/ 
+@font-face {
+    font-family: equinox-regular;
+    src: url('../fonts/EquinoxRegular.woff');
+}
+
+@font-face {
+    font-family: equinox-bold;
+    src: url('../fonts/EquinoxBold.woff');
+}
+html{
+    background: url("../images/blackBackDrop.gif");
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+h1,h2,h3,h4,h5,h6{
+    text-align: center;
+    text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+}
+.fcenter{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.inputF{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap:4%;
+}
+  .containerA {
+    background-color: rgba(0, 0, 0, 0.584);
+    border-radius: var(--button-radius);
+    box-shadow:  inset 5px 5px 10px rgb(51, 51, 51), inset -5px -5px 10px rgb(39, 39, 39);
+    position: relative;
+    align-items: flex-start;
+    justify-content: flex-start;
+    border: 1.5px solid #434343;
+    width: 70%;
+    margin: 5%;
+    color: white;
+    width: fit-content;
+    height: fit-content;
+  }
+  .fieldsetA{
+     background-color: #131313;
+     border: 1.5px solid #434343;
+     padding: 1% 1% 1%;
+     margin-left: 3%;
+     margin-right: 3%;
+     font-size: 100%;
+     text-align: justify;
+     line-height: 150%;
+     border-radius: var(--button-radius);
+     color: white;
+     height: max-content;
+     
+     flex-direction: column;
+     width: fit-content;
+  }
+  .legendA{
+    width: max-content; 
+    color: white;
+    font-size: 130%;
+    text-align: center;
+    flex-wrap: nowrap; 
+  }
+  .TitleA{
+    margin: 0%;
+    background-color: rgba(0, 0, 0, 0.683); 
+    margin-left: 1.5%;
+  }
+
+  .team-container {
+
+    display: grid;
+    justify-items: stretch; /* Stretch items to fill the grid cell horizontally */
+    align-items: stretch; /* Stretch items to fill the grid cell vertically */
+    grid-template-columns: repeat(3, 1fr); /* 3 team members in a row */
+    grid-gap: 2%; /* Space between grid items */
+    margin-top: 2%;
+}
+
+.team-member {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 2%;
+    margin: 2%;
+    text-align: center;
+    box-shadow: inset 4px 4px 5px rgb(65, 65, 65), inset -4px -4px 5px rgb(65, 65, 65);
+    text-shadow: none;
+}
+.team-member h4,p{
+    margin: 1%;
+}
+.team-member h4{
+    text-shadow: none;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5%;
+}
+
+.social-links a {
+    font-size: 120%;
+    margin: 0 2%;
+    text-decoration: none;
+    color: #ffffff; /* Change to your desired color */
+}
+.social-links a:hover {
+    font-size: 150%;
+    color: #0c26e5; /* Change to your desired color */
+}
+.navbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: #252525b5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: block;
+    align-items: center;
+}
+
+.navbar img {
+    width: 5%;
+    
+}
+
+.navbar .title {
+    padding-left: 1%;
+    align-items: center;
+    justify-content: center;
+    font-size: 180%;
+    font-family: equinox-bold;
+    color: white;
+    text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+}
+
+.navbar .home-icon {
+   
+    align-items: center;
+    justify-content: center;
+    font-size: 180%;
+    font-family: equinox-bold;
+    color: white;
+    text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+    
+}
+.navbar .home-icon:hover {
+    color: #2735a3;
+}
+.right-section{
+    position: absolute;
+    padding-top: 1.2%;
+    right:3%;
+    color: #131313;
+}
+.left-section{
+    padding: 1%;
+    display: flex;
+    align-items: center;
+}
+
+.footer{
+    text-align: center;
+    color: white;
+
+}
+.fcenter{
+width: 100%;
+
+}
+.inputF a{
+    color: white;
+    font-size: 100%;
+}
+.inputF a:hover{
+    color: blue;
+    font-size: 110%;
+}
+@media screen and (max-width:992px) {
+    .navbar .title {
+        margin-left: 0%;
+        font-size: 120%;   
+     }
+     .navbar img {
+        width: 8%;
+        background: none
+    }
+    .fieldsetA{
+        min-width: 85vw;
+    }
+    .fcenter{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .team-container {
+        grid-template-columns: repeat(2, 1fr);
+        min-height: fit-content;
+    }
+}
+@media screen and (max-width:600px) {
+
+    .team-container {
+        min-height: max-content;
+        grid-template-columns: repeat(1, 1fr);
+        height: 650px;
+    }
+    .navbar .title{
+        font-size: 100%;
+    }
+}
+@media screen and (max-width:320px) {
+
+    .team-container {
+        min-height: max-content;
+        grid-template-columns: repeat(1, 1fr);
+        height: 600px;
+    }
+    .navbar img{
+        width: 10%;
+    }
+    .navbar .title{
+        font-size: 85%;
+    }
+    .inputF a{
+        color: white;
+        font-size: 100%;
+    }
+    .inputF a:hover{
+        color: blue;
+        font-size: 110%;
+    }
+}
+

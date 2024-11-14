@@ -1,0 +1,23 @@
+/*File written by: Chevva,Meghana, Student ID: 1002114458*/ 
+.color-changing-image {
+    background: url('../images/lo.png');
+    animation: colorChange 10s infinite linear;
+    margin: 0%;
+  }
+  @keyframes colorChange {
+    0% {
+      filter: hue-rotate(0deg);
+    }
+    25% {
+      filter: hue-rotate(90deg);
+    }
+    50% {
+      filter: hue-rotate(180deg);
+    }
+    75% {
+      filter: hue-rotate(270deg);
+    }
+    100% {
+      filter: hue-rotate(360deg);
+    }
+  }

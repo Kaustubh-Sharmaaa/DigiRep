@@ -1,0 +1,360 @@
+/* File written by: Sharma, Kaustubh, Student ID: 1002138514 */
+.sidebar {
+    background-color: #131313;
+    padding: 20px;
+    font-size: 1rem;
+    color: white;
+    width: 15%;
+    border-radius: var(--button-radius);
+    display: flex;
+    flex-direction: column;
+    border-color: #434343;
+    border-style: solid;
+}
+
+.topthesis,
+.fromauthor {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+}
+
+.topthesis ul,
+.fromauthor ul {
+    width: 100%;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.topthesis li,
+.fromauthor li {
+    width: 100%;
+    text-align: center;
+}
+
+.sidebar-buttons {
+    display: block;
+    padding: 10px;
+    color: white;
+    text-decoration: none;
+    background-color: #131313;
+    border-style: none;
+    text-wrap: balance;
+    width: 100%;
+    text-align: center;
+}
+
+.sidebar-buttons:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: cadetblue;
+}
+
+
+.comments {
+    background-color: #131313;
+    padding: 1%;
+    color: white;
+    width: 20%;
+    border-radius: var(--button-radius);
+    border-color: #434343;
+    border-style: solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 650px;
+}
+
+.comment {
+    background-color: #131313;
+    border-radius: var(--button-radius);
+    border-style: groove;
+    border-color: #434343;
+    margin: 10px;
+    padding: 15px;
+    text-align: left;
+}
+
+.comment-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    height: 60px;
+    box-sizing: border-box;
+}
+
+.comments-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.comments-container {
+    overflow-y: auto;
+    flex-grow: 1;
+
+}
+
+.comment-form {
+    margin-top: auto;
+
+}
+
+.Thesis-text {
+    background-color: white;
+    padding: 10px;
+    border-radius: var(--button-radius);
+    color: black;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.Thesis-title {
+    font-weight: 500;
+    color: white;
+    margin: 0;
+    margin-bottom: 1.25rem;
+}
+
+.thesis-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #131313;
+    color: white;
+    width: 60%;
+}
+
+.meta {
+    display: flex;
+}
+
+.thesis-buttons {
+    display: flex;
+    margin-left: auto;
+}
+
+.thesis-buttons button:hover {
+    background-color: rgb(0, 64, 255);
+}
+
+.thesis-buttons button {
+    background-color: #131313;
+    font-size: large;
+    color: white;
+    border-radius: 40px;
+    margin: 1%;
+    padding: 1%;
+}
+
+.divider {
+    width: 10px;
+    height: auto;
+    display: inline-block;
+}
+
+.tabs-divider {
+    width: 25px;
+    height: auto;
+    display: inline-block;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tabs button {
+    
+    color: white;
+    border-radius: var(--button-radius);
+}
+
+
+
+.thesis-field {
+    background-color: #131313;
+    border: 1.5px solid #434343;
+    padding: 1% 1% 1%;
+    margin-left: 3%;
+    margin-right: 3%;
+    font-size: 100%;
+    text-align: justify;
+    line-height: 150%;
+    border-radius: var(--button-radius);
+    color: white;
+}
+
+
+.Thesis-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
+}
+
+
+.comment-button-like {
+    border-radius: 40px;
+    margin: 1%;
+    background-color: lightgreen;
+}
+
+.comment-button-report {
+    border-radius: 40px;
+    margin: 1%;
+    background-color: lightcoral;
+}
+
+.Comment-submit {
+    border-radius: 40px;
+    background-color: lightblue;
+}
+
+.commenter-name {
+    font-weight: bold;
+    font-size: large;
+    text-decoration: underline;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+}
+
+.comment-text {
+    font-size: medium;
+}
+
+
+
+
+
+
+
+.thesis-nav-button {
+    padding: 0.6em 1em;
+    border: none;
+    outline: none;
+    color: rgb(255, 255, 255);
+    background: #000000;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    border-radius: 5%;
+    user-select: none;
+    touch-action: manipulation;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    width: 100%;
+    max-width: 200px;
+}
+
+.thesis-nav-button:before {
+    content: "";
+    background: linear-gradient(45deg,
+            #ff00c8,
+            #00ffd5,
+            #002bff,
+            #7a00ff,
+            #00ffd5,
+            #002bff,
+            #7a00ff,
+            #ff00c8);
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    background-size: 400%;
+    z-index: -1;
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    animation: glowing-thesis-nav-button 20s linear infinite;
+    transition: opacity 0.3s ease-in-out;
+    border-radius: 10px;
+}
+
+@keyframes glowing-thesis-nav-button {
+    0% {
+        background-position: 0 0;
+    }
+
+    50% {
+        background-position: 400% 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+.thesis-nav-button:after {
+    z-index: -1;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: black;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+}
+
+.thesis-nav-button:hover:after {
+    border: 1px solid rgba(0, 0, 0, 0.404);
+    background: #2b2b2b;
+}
+
+@media (max-width: 900px) {
+
+    .sidebar,
+    .comments,
+    .thesis-content {
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 10px;
+    }
+
+    .Thesis-container {
+        flex-direction: column;
+        
+    }
+
+    .sidebar {
+        flex-direction: row;
+    }
+
+    .comments {
+        height: auto;
+    }
+
+    .sidebar,
+    .comments,
+    .thesis-content {
+        width: 100%;
+        align-items: center;
+    }
+
+    .sidebar,
+    .comments {
+        padding: 10px;
+    }
+
+    .thesis-content {
+        padding: 10px;
+    }
+
+}
+@media screen and (max-width:320px) {
+    .tabs{
+        display: flex;
+        flex-direction: column;
+    }
+    
+}

@@ -1,0 +1,130 @@
+/*File written by: Chauhan, Dharti Ranchhodbhai, Student ID: 1002172493*/
+.fcenter{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.fieldset{
+    background-color: #131313;
+    border: 1.5px solid #434343;
+    padding: 1% 1% 1%;
+    margin-left: 3%;
+    margin-right: 3%;
+    font-size: 100%;
+    text-align: justify;
+    line-height: 150%;
+    border-radius: var(--button-radius);
+    color: white;
+    height: max-content;
+    width:80vw;
+    display: flex;
+    align-items: center;
+}
+
+.legendA{
+    width: max-content; 
+    color: white;
+    font-size: 130%;
+    text-align: center;
+    flex-wrap: nowrap; 
+}
+
+.submitform{
+    padding-left: 2%;
+    padding-right: 2%;
+    background-color: rgba(18, 18, 18, 0.854);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    text-align: center;
+    flex:1;
+    width: 70%;
+}
+
+.containerB {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #131313; 
+    color: #c9d1d9; 
+    font-family: Arial, sans-serif;
+    flex-direction: column;
+    width: 100%; /* Ensure it does not overflow */
+    box-sizing: border-box;
+}
+
+.text-input, textarea{
+        font-size: 100%;
+        height: auto;
+        border-radius: 30px;
+        padding: 2%;
+        border: none;
+        line-height: 150%;
+        background-color: #2b2b2b;
+        font-size: 100%;
+        box-shadow: inset 4px 4px 5px rgb(65, 65, 65);
+        color:white;
+}
+
+
+textarea {
+    resize: vertical; 
+}
+
+
+label[for="file-upload"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6em 2em;
+    width: 100%; 
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+
+.button-template {
+    padding: 0.6em 2em;
+    border: none;
+    outline: none;
+    color: rgb(255, 255, 255);
+    background-color: #21262d;
+    cursor: pointer;
+    position: relative;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    padding: 0.9rem 4rem;
+    width: 100%;
+}
+
+
+#file-upload{
+    display: none;
+}
+
+.uploaded-file {
+    font-size: 0.85rem;
+    color: #c9d1d9;
+    margin-top: 5px;
+    padding: 5px;
+    background-color: #2b2b2b;
+    border-radius: 5px;
+    display: inline-block;
+    width: fit-content;
+}
+
+
+
+
+@media screen and (max-width: 768px) {
+    .containerB {
+        flex-direction: column;
+    }
+}
+.picons:hover{
+    color: blue;
+}

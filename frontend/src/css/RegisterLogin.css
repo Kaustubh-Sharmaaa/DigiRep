@@ -1,0 +1,320 @@
+/*File written by: Chevva,Meghana, Student ID: 1002114458*/ 
+@font-face {
+    font-family: equinox-regular;
+    src: url('../fonts/EquinoxRegular.woff');
+}
+
+@font-face {
+    font-family: equinox-bold;
+    src: url('../fonts/EquinoxBold.woff');
+}
+
+html{
+    background-image: url('../images/blackBackDrop.gif');
+    background-attachment: fixed;
+    background-size: cover;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #2b2b2b;
+}
+
+.container {
+    max-height: max-content;
+    
+    display: flex;
+    flex-direction: row;
+    min-width: 600px;
+    justify-content: space-around;
+    align-items: center;
+    color: white;
+    align-items: stretch;
+    min-height: 100vh;
+}
+
+.overlayRight {
+    display: none;
+}
+
+.overlayLeft {
+    display: none;
+}
+.fp{
+   text-align: right;
+   color:white;
+}
+.linkfp{
+    color: white;
+}
+.SignUpForm {
+    display: none;
+}
+.names{
+    display: inline;
+}
+h1{
+    margin: 0%;
+}
+
+.SignInForm {
+    display: none;
+}
+.fieldsetR{
+    display: flex;
+    flex-direction: column;
+    min-width: 500px;
+    height: 80vh;
+    padding-top: 5%;
+    padding-left: 2%;
+    padding-right: 2%;
+    
+}
+
+.overlayRight.active {
+    background-color: rgba(18, 18, 18, 0.554);
+    text-align: center;
+    padding-left: 2%;
+    padding-right: 2%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex:1;
+}
+
+
+.overlayLeft.active {
+    background-color: rgba(18, 18, 18, 0.554);
+    text-align: center;
+    padding-left: 2%;
+    padding-right: 2%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex:1;
+}
+
+.SignUpForm.active {
+    padding-left: 2%;
+    padding-right: 2%;
+    background-color: rgba(18, 18, 18, 0.954);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: fit-content;
+    flex:1;
+}
+
+.SignInForm.active {
+    padding-left: 2%;
+    padding-right: 2%;
+    background-color: rgba(18, 18, 18, 0.954);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: fit-content;
+    flex: 1;
+}
+
+input{
+    border-radius: 30px;
+    padding: 2%;
+    border: none;
+    line-height: 150%;
+    background-color: #2b2b2b;
+    font-size: 100%;
+    box-shadow: inset 4px 4px 5px rgb(65, 65, 65);
+    color:white;
+}
+.inputR{
+    border-radius: 30px;
+    padding: 2%;
+    border: none;
+    line-height: 150%;
+    background-color: #2b2b2b;
+    font-size: 100%;
+    box-shadow: inset 4px 4px 5px rgb(65, 65, 65);
+    color:white;
+}
+.input2{
+    display: flex;
+    flex-direction: row;
+    gap:4%;
+}
+.input22{
+    flex:1;
+}
+.input22R{
+    padding: 2%;
+    flex:1;
+}
+.input3{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+.Titlen{
+    font-family: equinox-bold;
+    font-size: 300%;
+    text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+}
+.text{
+    text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+
+}
+.loginform{
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    justify-content: center;
+    flex-direction: column;
+}
+a{
+    color:#002bff;
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
+a:hover{
+    color: #7a00ff;
+    font-size: 120%;
+}
+button{
+    padding: 2%;
+    padding-left: 3%;
+    padding-right: 3%;
+    width: max-content;
+}
+.button-85 {
+    padding: 0.6em 2em;
+    border: none;
+    outline: none;
+    color: rgb(255, 255, 255);
+    background: #000000;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    border-radius: 5%;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    padding: 0.9rem 4rem;
+}
+
+.button-85:before {
+    content: "";
+    background: linear-gradient(45deg,
+            #ff00c8,
+            #00ffd5,
+            #002bff,
+            #7a00ff,
+            #00ffd5,
+            #002bff,
+            #7a00ff,
+            #ff00c8);
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    background-size: 400%;
+    z-index: -1;
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    animation: glowing-button-85 20s linear infinite;
+    transition: opacity 0.3s ease-in-out;
+    border-radius: 10px;
+}
+
+@keyframes glowing-button-85 {
+    0% {
+        background-position: 0 0;
+    }
+
+    50% {
+        background-position: 400% 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+.button-85:after {
+    z-index: -1;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: black;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+}
+
+.button-85:hover:after {
+    border: 1px solid rgba(0, 0, 0, 0.404);
+    background: #2b2b2b;
+}
+@media screen and (max-width:992px) {
+    .container {
+        display: flex;
+        flex-direction: column; 
+        min-width: fit-content;
+    }
+    .form{
+        width: 100%;
+    }
+    .fieldsetR{
+        padding: 5%;
+        min-width: fit-content;
+        height: fit-content;
+        margin: 1%;
+    }
+    .Titlen{
+        margin: 5%;
+        font-family: equinox-bold;
+        font-size: 200%;
+        text-shadow: 1px 1px 2px red, 0 0 1em blue, 0 0 0.2em blue;
+    }
+    .text{
+        margin: 1%;
+    }
+
+}
+
+@media screen and (max-width:600px) {
+    .container {
+        display: flex;
+        flex-direction: column;
+        
+    }
+    .form{
+        margin-bottom: 3%;
+    }
+    .overlayLeft{
+        flex:1
+    }
+    .overlayRight{
+        flex: 1;
+    }
+    .SignInForm{
+        flex: 1;
+    }
+    .SignUpForm{
+        flex: 1;
+    }
+}
+@media screen and (max-width:320px) {
+    .button-85{
+        padding: 6%;
+    }
+    
+}
