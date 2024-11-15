@@ -157,6 +157,8 @@ const SubmitThesis = () => {
             setReqAdvisor([]);
             setRefThesis([]);
             setUploadedFile(null);
+            document.getElementById("file-input").value = null;
+            
         } catch (error) {
             console.error('Error:', error);
             alert("Error submitting thesis, please try again later.");
@@ -166,6 +168,7 @@ const SubmitThesis = () => {
             setReqAdvisor([]);
             setRefThesis([]);
             setUploadedFile(null);
+            document.getElementById("file-input").value = null;
         }
     };
 

@@ -14,6 +14,8 @@ import SubmitThesis from './components/SubmitThesis';
 import AdvisorDashboard from './components/AdvisorDashboard';
 import PendingRefTheses from './components/PendingRefDashboard';
 import PendingReqTheses from './components/PendingReqDashboard';
+import StudentsApproved from './components/StudentApproved';
+import StudentsDeclined from './components/StudentsDeclined';
 import { BrowserRouter, Routes, Route } from "react-router-dom"; // Imports for routing
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -33,6 +35,8 @@ root.render(
         <Route path="/advisorDashboard" element={ <AdvisorDashboard/>}/>
         <Route path="/pendingRefTheses" element={ <PendingRefTheses/>}/>
         <Route path="/pendingReqTheses" element={ <PendingReqTheses/>}/>
+        <Route path="/studentsApproved" element={ <StudentsApproved/>}/>
+        <Route path="/studentsDeclined" element={ <StudentsDeclined/>}/>
        </Routes>
        </BrowserRouter>
   </React.StrictMode>

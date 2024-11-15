@@ -549,6 +549,210 @@ app.post('/api/pending-req-theses', (req, res) => {
       res.status(200).json(results);
   });
 });
+
+app.get('/api/students-approved-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM students
+      WHERE isVerified = 'approved'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
+
+app.get('/api/students-declined-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM students
+      WHERE isVerified = 'declined'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
+
+app.get('/api/students-pending-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM students
+      WHERE isVerified = 'pending'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
+//here
+app.get('/api/advisors-approved-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM advisors
+      WHERE isVerified = 'approved'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
+
+app.get('/api/advisors-declined-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM advisors
+      WHERE isVerified = 'declined'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
+
+app.get('/api/advisors-pending-search/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to include wildcards for partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve students who are approved and where any of the columns match the search term
+  const query = `
+      SELECT *
+      FROM advisors
+      WHERE isVerified = 'pending'
+      AND (
+          firstName LIKE ? 
+          OR lastName LIKE ?
+          OR email LIKE ?
+      )
+  `;
+
+  // Execute the query with the search term bound to each LIKE condition
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+      if (err) {
+          console.error("Error retrieving students:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      
+      // Send the retrieved data as JSON response
+      res.json(results);
+  });
+});
 app.post('/api/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {

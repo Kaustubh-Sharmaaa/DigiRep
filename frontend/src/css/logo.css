@@ -1,6 +1,7 @@
 /*File written by: Chevva,Meghana, Student ID: 1002114458*/ 
 .color-changing-image {
     background: url('../images/lo.png');
+    background-repeat: no-repeat;
     animation: colorChange 10s infinite linear;
     margin: 0%;
   }

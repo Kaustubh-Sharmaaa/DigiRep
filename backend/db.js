@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS thesis (
     CONSTRAINT fk_refAdvisorId FOREIGN KEY (refAdvisorId) REFERENCES advisors(advisorID),
     CONSTRAINT fk_req1ReviewAdvisorId FOREIGN KEY (req1ReviewAdvisorId) REFERENCES advisors(advisorID),
     CONSTRAINT fk_req2ReviewAdvisorId FOREIGN KEY (req2ReviewAdvisorId) REFERENCES advisors(advisorID),
-    CONSTRAINT fk_req3ReviewAdvisorId FOREIGN KEY (req3ReviewAdvisorId) REFERENCES advisors(advisorID)
+    CONSTRAINT fk_req3ReviewAdvisorId FOREIGN KEY (req3ReviewAdvisorId) REFERENCES advisors(advisorID),
+    publishStatus ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING'
 );
 `
 
