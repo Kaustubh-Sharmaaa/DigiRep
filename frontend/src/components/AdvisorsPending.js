@@ -4,21 +4,21 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
 
-const AdvisorsDeclined = () => {
+const AdvisorsPending = () => {
 
     const navigate = useNavigate();
-    const [advisorsDeclined, setAdvisorsDeclined] = useState([]);
+    const [advisorsPending, setAdvisorsPending] = useState([]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const fetchData = () => {
         
 
-        fetch('http://localhost:3001/api/advisors-declined')
+        fetch('http://localhost:3001/api/advisors-pending')
             .then(response => response.json())
-            .then(data => Array.isArray(data) ? setAdvisorsDeclined(data) : setAdvisorsDeclined([]))
+            .then(data => Array.isArray(data) ? setAdvisorsPending(data) : setAdvisorsPending([]))
             .catch(error => {
                 console.log('Error fetching advisors:', error);
-                setAdvisorsDeclined([]); // fallback to an empty array on error
+                setAdvisorsPending([]); // fallback to an empty array on error
             });
         
 
@@ -34,8 +34,8 @@ const AdvisorsDeclined = () => {
         fetchData();
     }, []);
 
-    const handlePending = (userId) => {
-        fetch(`http://localhost:3001/api/pending-advisor/${userId}`, {
+    const handleApprove = (userId) => {
+        fetch(`http://localhost:3001/api/approve-advisor/${userId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
         })
@@ -55,12 +55,12 @@ const AdvisorsDeclined = () => {
 
     if (term) {
         // If there's a search term, perform the search
-        fetch(`http://localhost:3001/api/advisors-declined-search/${term}`)
+        fetch(`http://localhost:3001/api/advisors-pending-search/${term}`)
             .then(response => response.json())
-            .then(data => Array.isArray(data) ? setAdvisorsDeclined(data) : setAdvisorsDeclined([]))
+            .then(data => Array.isArray(data) ? setAdvisorsPending(data) : setAdvisorsPending([]))
             .catch(error => {
                 console.log('Error fetching advisors:', error);
-                setAdvisorsDeclined([]); // fallback to an empty array on error
+                setAdvisorsPending([]); // fallback to an empty array on error
             });
     } else {
         // If the search term is empty, call fetchData
@@ -69,47 +69,30 @@ const AdvisorsDeclined = () => {
     };
 
     // Function to handle key down events, specifically for the Enter key
-    const handleDeclinedAdvisorsSearchKeyDown = (e) => {
+    const handlePendingAdvisorsSearchKeyDown = (e) => {
         if (e.key === 'Enter' && searchTerm) {
-            fetch(`http://localhost:3001/api/advisors-declined-search/${searchTerm}`)
+            fetch(`http://localhost:3001/api/advisors-pending-search/${searchTerm}`)
             .then(response => response.json())
-            .then(data => Array.isArray(data) ? setAdvisorsDeclined(data) : setAdvisorsDeclined([]))
+            .then(data => Array.isArray(data) ? setAdvisorsPending(data) : setAdvisorsPending([]))
             .catch(error => {
                 console.log('Error fetching advisors:', error);
-                setAdvisorsDeclined([]); // fallback to an empty array on error
+                setAdvisorsPending([]); // fallback to an empty array on error
             });
         }
     };
 
     const handleClearSearch = (e) => {
         setSearchTerm('');
-            fetch(`http://localhost:3001/api/advisors-declined`)
+            fetch(`http://localhost:3001/api/advisors-pending`)
             .then(response => response.json())
-            .then(data => Array.isArray(data) ? setAdvisorsDeclined(data) : setAdvisorsDeclined([]))
+            .then(data => Array.isArray(data) ? setAdvisorsPending(data) : setAdvisorsPending([]))
             .catch(error => {
                 console.log('Error fetching advisors:', error);
-                setAdvisorsDeclined([]); // fallback to an empty array on error
+                setAdvisorsPending([]); // fallback to an empty array on error
             });
         
     };
-    const handleDelete = (userId) => {
-        const isConfirmed = window.confirm('Are you sure? This action cannot be undone.');
 
-        if (isConfirmed) {
-            fetch(`http://localhost:3001/api/delete-advisor/${userId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            })
-                .then(response => response.json())
-                .then(() => {
-                    fetchData();
-                })
-                .catch(error => console.error('Error deleting Advisor:', error));
-        } else {
-            console.log('Delete action was cancelled.');
-        }
-
-    };
     return (
         <div className="dashboard">
             <SearchNavbar />
@@ -120,33 +103,30 @@ const AdvisorsDeclined = () => {
                     <h2>Advisors Accounts</h2>
                     <div className='Verification'>
                         <div className='blocksDashboard'>
-                            <h3>Declined Verification</h3>
+                            <h3>Pending Verification</h3>
                             <input
                                 type="text"
                                 className='inputsn' // Class for styling the input
                                 placeholder="Search Advisor by name or email" // Placeholder text
                                 value={searchTerm} // Controlled input value
                                 onChange={handleSearch} // Update state on input change
-                                onKeyDown={handleDeclinedAdvisorsSearchKeyDown} // Listen for the Enter key
+                                onKeyDown={handlePendingAdvisorsSearchKeyDown} // Listen for the Enter key
                             />
                             <button onClick={handleClearSearch}>Clear</button>
-                            {Array.isArray(advisorsDeclined) && advisorsDeclined.length > 0 ? (
-                                advisorsDeclined.map(user => (
+                            {Array.isArray(advisorsPending) && advisorsPending.length > 0 ? (
+                                advisorsPending.map(user => (
                                     <div key={user.id} className="user-card">
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
                                         <p><strong>Email:</strong> {user.email}</p>
                                         <p><strong>Education:</strong> {user.education}</p>
-                                        <button onClick={() => handlePending(user.id)} className="button-approve">
-                                            Pending
-                                        </button>
-                                        <button onClick={() => handleDelete(user.id)} className="button-approve">
-                                            Delete
+                                        <button onClick={() => handleApprove(user.id)} className="button-approve">
+                                            Approve
                                         </button>
 
                                     </div>
                                 ))
                             ) : (
-                                <p>No advisors declined verification.</p>
+                                <p>No advisors pending verification.</p>
                             )}
                         </div>
                     </div>
@@ -159,6 +139,7 @@ const AdvisorsDeclined = () => {
             <Footer />
         </div>
     );
+
 }
 
-export default AdvisorsDeclined;
+export default AdvisorsPending;

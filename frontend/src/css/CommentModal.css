@@ -1,0 +1,74 @@
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7); /* Darker background for better contrast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure the modal is on top */
+}
+
+/* Modal Content */
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px; /* Rounded corners */
+    width: 400px; /* Increased width for better text area */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+/* Modal Title */
+.modal-content h2 {
+    margin: 0 0 15px; /* Space below the title */
+    font-size: 20px; /* Adjust font size */
+    text-align: center; /* Center the title */
+}
+
+/* Textarea */
+.modal-content textarea {
+    resize: none; /* Disable resizing */
+    height: 100px; /* Fixed height for the text area */
+    margin-bottom: 15px; /* Space below the text area */
+    padding: 10px; /* Padding inside the text area */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+}
+
+/* Button Container */
+.modal-content div {
+    display: flex;
+    justify-content: space-between; /* Space between buttons */
+}
+
+/* Buttons */
+.modal-content button {
+    padding: 10px 15px; /* Padding for buttons */
+    border: none; /* Remove default border */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 14px; /* Font size */
+}
+
+/* OK Button */
+.modal-content button:first-child {
+    background-color: #4CAF50; /* Green background for OK */
+    color: white; /* White text */
+}
+
+/* Cancel Button */
+.modal-content button:last-child {
+    background-color: #f44336; /* Red background for Cancel */
+    color: white; /* White text */
+}
+
+/* Button Hover Effects */
+.modal-content button:hover {
+    opacity: 0.9; /* Slightly transparent on hover */
+}

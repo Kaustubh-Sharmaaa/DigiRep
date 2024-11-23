@@ -45,7 +45,11 @@ const RegisterLogin = () => {
     };
 
     const handleSignUp = () => {
+
+        
         setIsLoginPanelActive(false);
+
+        
     };
 
 
@@ -64,22 +68,28 @@ const RegisterLogin = () => {
             if (typeof data === 'object' && data !== null) {
                 
                 sessionStorage.setItem('user', JSON.stringify(data));
-                if(data.isVerified=="APPROVED" || data.isVerified=="PENDING"){
+                if(data.isVerified=="APPROVED"){
                     alert(`Logged in as ${data.firstName}!`);
                 if(data.role == "Student"){
                 navigate('/StudentDashboard', { state: { user: data } })
                 }
-                if(data.role=="Department Admin")
-                {
-                    navigate('/departmentAdminDashboard', { state: { user: data } })
-                }
+                
                 if(data.role=="Advisor")
                     {
                         navigate('/advisorDashboard', { state: { user: data } })
                     }
             }
             else{
-              alert('Please wait until someone approves your profile');
+                if(data.role=="Department Admin")
+                    {
+                        navigate('/departmentAdminDashboard', { state: { user: data } })
+                    }
+               else 
+               if (data.role =="Visitor"){
+                navigate('/VisitorDashboard', { state: { user: data } })
+               }
+               else{alert('Please wait until someone approves your profile');
+               }
               setPassword('');
             }
                 
@@ -97,6 +107,22 @@ const RegisterLogin = () => {
     // Handler for signup form submission
     const handleSignUpSubmit = (e) => {
         e.preventDefault();
+
+        //send notification
+        // const userData = JSON.parse(sessionStorage.getItem('user'));
+        for(let i = 0; i < 5; i++)
+            {
+                fetch(`http://localhost:3001/api/sendNotifications`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId :  "da"+ i,
+                        message: `${firstName} ${lastName} user is waiting for approval`
+                    }),
+                });
+            }
+
+
         fetch('http://localhost:3001/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

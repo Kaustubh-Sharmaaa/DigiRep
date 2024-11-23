@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
 import { FaNfcSymbol } from 'react-icons/fa6';
+import  ChatComponent from "./ChatComponent";
 
 const DepartmentAdminDashboard = () => {
     const navigate = useNavigate();
@@ -149,6 +150,18 @@ const DepartmentAdminDashboard = () => {
                 fetchData();
             })
             .catch(error => console.error('Error approving user:', error));
+
+            //send notification
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        fetch(`http://localhost:3001/api/sendNotifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                userId : 's' + userId,
+                message: `${userData.firstName} ${userData.lastName} has approved you`
+            }),
+        })
+
     };
 
     const handleDecline = (userId) => {
@@ -161,6 +174,18 @@ const DepartmentAdminDashboard = () => {
                 fetchData();
             })
             .catch(error => console.error('Error declining Student:', error));
+
+             //send notification
+             const userData = JSON.parse(sessionStorage.getItem('user'));
+             fetch(`http://localhost:3001/api/sendNotifications`, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ 
+                     userId : 's' + userId,
+                     message: `${userData.firstName} ${userData.lastName} has declined you`
+                 }),
+             })
+             
     };
     const handlePending = (userId) => {
         fetch(`http://localhost:3001/api/pending-student/${userId}`, {
@@ -172,6 +197,11 @@ const DepartmentAdminDashboard = () => {
                 fetchData();
             })
             .catch(error => console.error('Error pending Student:', error));
+
+
+            
+
+
     };
     const handleDelete = (userId) => {
         const isConfirmed = window.confirm('Are you sure? This action cannot be undone.');
@@ -202,6 +232,19 @@ const DepartmentAdminDashboard = () => {
                 fetchData();
             })
             .catch(error => console.error('Error approving user:', error));
+
+          //send notification
+          const userData = JSON.parse(sessionStorage.getItem('user'));
+          fetch(`http://localhost:3001/api/sendNotifications`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  userId : 'a' + userId,
+                  message: `${userData.firstName} ${userData.lastName} has approved you`
+              }),
+          })
+
+
     };
 
 
@@ -215,6 +258,18 @@ const DepartmentAdminDashboard = () => {
                 fetchData();
             })
             .catch(error => console.error('Error declining Student:', error));
+
+        //send notification
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        fetch(`http://localhost:3001/api/sendNotifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                userId : 'a' + userId,
+                message: `${userData.firstName} ${userData.lastName} has declined you`
+            }),
+        })
+
     };
     const handleAdvisorPending = (userId) => {
         fetch(`http://localhost:3001/api/pending-advisor/${userId}`, {
@@ -660,7 +715,7 @@ const DepartmentAdminDashboard = () => {
                                 onKeyDown={handlePendingAdvisorsSearchKeyDown} // Listen for the Enter key
                             /><button onClick={handleAdvisorsPendingClearSearch}>Clear</button>
                             {Array.isArray(advisorsPending) && advisorsPending.length > 0 ? (
-                                advisorsPending.map(user => (
+                                advisorsPending.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
                                         <div>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
@@ -699,7 +754,7 @@ const DepartmentAdminDashboard = () => {
                                 onKeyDown={handleDeclinedAdvisorsSearchKeyDown} // Listen for the Enter key
                             /><button onClick={handleAdvisorsDeclinedClearSearch}>Clear</button>
                             {Array.isArray(advisorsDeclined) && advisorsDeclined.length > 0 ? (
-                                advisorsDeclined.map(user => (
+                                advisorsDeclined.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
                                         <div>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
@@ -738,7 +793,7 @@ const DepartmentAdminDashboard = () => {
                                 onKeyDown={handleApprovedAdvisorsSearchKeyDown} // Listen for the Enter key
                             /><button onClick={handleAdvisorsApprovedClearSearch}>Clear</button>
                             {Array.isArray(advisorsApproved) && advisorsApproved.length > 0 ? (
-                                advisorsApproved.map(user => (
+                                advisorsApproved.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
                                         <div>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
@@ -764,16 +819,13 @@ const DepartmentAdminDashboard = () => {
                     </div>
                     <br /><br /><br />
 
-                    <div className='input3'>
-                        <button className="button-85" onClick={() => navigate('/submit-thesis')}>
-                            Submit a new thesis
-                        </button>
-                    </div>
+                    
                 </div>
             </fieldset>
             <br />
 
             <Footer />
+            <ChatComponent />
         </div>
     );
 }

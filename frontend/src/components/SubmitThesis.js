@@ -11,6 +11,9 @@ import { useNavigate } from 'react-router-dom';
 const SubmitThesis = () => {
     const navigate = useNavigate();
     const userData = JSON.parse(sessionStorage.getItem('user'));
+    const [values, setValues] = useState([]);
+    const [inputValue, setInputValue] = useState([]);
+
     useEffect(() => {
 
         if (!userData) {
@@ -103,6 +106,7 @@ const SubmitThesis = () => {
         const formData = {
             title,
             abstract,
+            thesisKeywords: values,
             studentId: userData.studentID,
             refadvisorIds: refadvisor, // List of advisors chosen for "Review Requested From"
             requestedAdvisorIds: reqadvisor, // List of referenced advisors
@@ -151,6 +155,23 @@ const SubmitThesis = () => {
                 console.log('Failed to submit thesis:', response);
                 alert("Error submitting thesis, please try again later.");
             }
+
+
+            //send notification
+            // const userData = JSON.parse(sessionStorage.getItem('user'));
+            const advIds = [formData.refadvisorIds, ...formData.requestedAdvisorIds]
+            for(let i = 0; i < advIds.length; i++)
+            {
+                fetch(`http://localhost:3001/api/sendNotifications`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId :  advIds[i],
+                        message: `${userData.firstName} ${userData.lastName} has requested thesis ${formData.title}`
+                    }),
+                });
+            }
+
             document.getElementById("title").value = "";
             document.getElementById("abstract").value = "";
             setRefAdvisor(null);
@@ -221,6 +242,33 @@ const SubmitThesis = () => {
         }),
     };
 
+    const handleAddValue = () => {
+        if (typeof inputValue === 'string') {
+            const trimmedValue = inputValue.trim();
+            if (trimmedValue && !values.includes(trimmedValue) && values.length<10 && trimmedValue.length!=0) {
+            setValues([...values, trimmedValue]);
+            setInputValue([]);
+            }
+            
+            console.log("inputValue: ",inputValue)
+            console.log("values: ",values)
+        }
+        
+      };
+
+    
+
+    const handleRemoveValue = (index) => {
+        setValues(values.filter((_, i) => i !== index));
+      };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAddValue();
+        }
+      };
+
     const handleRefSelectChange = (selectedOptions) => {
         console.log("seloptions:", selectedOptions);
         setRefAdvisor(selectedOptions ? selectedOptions.value : null);
@@ -267,6 +315,28 @@ const SubmitThesis = () => {
                             <input type="text" className="text-input" id="title" placeholder="Enter Thesis Title here" required />
                             <br />
                             <textarea id="abstract" placeholder="Enter Abstract here"></textarea>
+                            <br />
+
+                            <div className="keyword-container">
+                                {values.map((value, index) => (
+                                    <div key={index} className="keyword">
+                                        <span>{value}</span>
+                                        <button className="remove-keyword" onClick={() => handleRemoveValue(index)}>
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                                <input
+                                    type="text"
+                                    className="keyword-input"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Type Keywords and press Enter..."
+                                />
+                            </div>
+                            
+
                             <br />
 
                             {/* Multi-select for referenced advisors */}

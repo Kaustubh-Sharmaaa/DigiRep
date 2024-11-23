@@ -4,10 +4,269 @@ const cors = require('cors');
 const db = require('./db');
 const session = require('express-session');
 const app = express();
+
+
+const { Server } = require('socket.io');
+const http = require('http');
+
+// Create HTTP server for WebSocket integration
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000", // Your frontend URL
+    methods: ["GET", "POST"],
+  },
+});
+
+
+
+
 app.use(express.json());
 app.use(cors());
 app.use(session({ secret: 'secret', resave: true, saveUninitialized: true }));
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+
+
+const nodemailer = require('nodemailer');
+const crypto = require('crypto')
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'digithesisrepo2@gmail.com',
+    pass: 'eukx wnbc ivbu hxfv'
+  }
+});
+
+app.post('/api/send-otp', (req, res) => {
+  const { email } = req.body;
+
+  // Define the tables to search for the email
+  const tables = ['students', 'visitors', 'departmentadmins', 'advisors'];
+
+  // Function to search for the email in a specific table
+  const findEmailInTable = (tableName) => {
+    return new Promise((resolve, reject) => {
+      db.query(`SELECT * FROM ${tableName} WHERE email = ?`, [email], (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(result.length > 0); // Return true if the email is found
+      });
+    });
+  };
+
+  // Search for the email in all tables sequentially
+  const findEmail = async () => {
+    for (const table of tables) {
+      const exists = await findEmailInTable(table);
+      if (exists) {
+        return true; // Email found in one of the tables
+      }
+    }
+    return false; // Email not found in any table
+  };
+
+  // Main logic to handle OTP generation and sending
+  findEmail()
+    .then((emailExists) => {
+      if (!emailExists) {
+        return res.status(404).send('Email not found in any user table');
+      }
+
+      // Generate a 6-digit OTP
+      const otp = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+      // Calculate expiration time (15 minutes from now)
+      const expirationTime = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+
+      // Save OTP in the password_resets table with expiration time
+      db.query(
+        'INSERT INTO password_resets (email, otp, expired_at) VALUES (?, ?, ?)',
+        [email, otp, expirationTime],
+        (err) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send('Error saving OTP');
+          }
+
+          // Send OTP email
+          const mailOptions = {
+            from: 'your-email@gmail.com',
+            to: email,
+            subject: 'Your Password Reset OTP',
+            text: `Your OTP for resetting your password is: ${otp}`,
+          };
+
+          transporter.sendMail(mailOptions, (err) => {
+            if (err) {
+              console.log(err);
+              return res.status(500).send('Error sending email');
+            }
+            res.status(200).send('OTP sent to your email');
+          });
+        }
+      );
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('Database error');
+    });
+});
+
+
+// Verify OTP and reset password
+app.post('/api/verify-otp', (req, res) => {
+  const { email, otp,newPassword } = req.body;
+
+  // Validate OTP
+  db.query('SELECT * FROM password_resets WHERE email = ? AND otp = ?', [email, otp], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Database error');
+    }
+
+    if (result.length === 0) {
+      return res.status(400).send('Invalid OTP');
+    }
+    // Update password in the users table (store as plain text)
+    db.query('UPDATE students SET password = ? WHERE email = ?', [newPassword, email], (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Error updating password');
+      }
+
+      // Optionally delete the OTP entry after successful reset
+      db.query('DELETE FROM password_resets WHERE email = ?', [email], (err, result) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send('Error deleting OTP');
+        }
+
+        res.status(200).send('Password reset successfully');
+      });
+    });
+  });
+});
+app.post('/api/reset-password', (req, res) => {
+  const { email, newPassword } = req.body;
+
+  // Define the tables to update the password
+  const tables = ['students', 'visitors', 'departmentadmins', 'advisors'];
+
+  // Function to update the password in a specific table
+  const updatePasswordInTable = (tableName) => {
+    return new Promise((resolve, reject) => {
+      db.query(
+        `UPDATE ${tableName} SET password = ? WHERE email = ?`,
+        [newPassword, email],
+        (err, result) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(result.affectedRows > 0); // Return true if a row was updated
+        }
+      );
+    });
+  };
+
+  // Try updating the password in all tables sequentially
+  const updatePassword = async () => {
+    for (const table of tables) {
+      const updated = await updatePasswordInTable(table);
+      if (updated) {
+        return true; // Password updated in one of the tables
+      }
+    }
+    return false; // Password not updated in any table
+  };
+
+  // Main logic
+  updatePassword()
+    .then((passwordUpdated) => {
+      if (!passwordUpdated) {
+        return res.status(404).json({ message: 'Email not found in any user table' });
+      }
+
+      // Clean up OTP records after successful update
+      db.query('DELETE FROM password_resets WHERE email = ?', [email], (err) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ message: 'Failed to clean up OTP records' });
+        }
+
+        res.status(200).json({ message: 'Password reset successful' });
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: 'Database error' });
+    });
+});
+
+
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Handle user joining their room
+  socket.on("join", (userId) => {
+    if (!userId) {
+      console.error("Invalid userId provided for join event");
+      return;
+    }
+    socket.join(userId);
+    console.log(`User ${userId} joined their room.`);
+  });
+
+  // Handle sending messages
+  socket.on("send_message", (data) => {
+    console.log("Message received:", data); // Log the incoming data
+    const { senderId, receiverId, message } = data;
+
+    // Validate input data
+    if (!senderId || !receiverId || !message.trim()) {
+      console.error("Invalid data received for message:", data);
+      socket.emit("error_message", "Invalid data provided for sending a message.");
+      return;
+    }
+
+    // Save the message to the database
+    db.query(
+      `INSERT INTO messages (senderId, receiverId, message, timestamp, status) VALUES (?, ?, ?, ?, ?)`,
+      [senderId, receiverId, message, new Date(), "SENT"],
+      (err, result) => {
+        if (err) {
+          console.error("Error inserting message into database:", err);
+          socket.emit("error_message", "Error saving message to the database.");
+          return;
+        }
+
+        console.log(`Message saved to database with ID: ${result.insertId}`);
+
+        // Emit the message to the receiver's room in real-time
+        io.to(receiverId).emit("receive_message", {
+          senderId,
+          receiverId,
+          message,
+          timestamp: new Date(),
+        });
+
+        console.log(`Message emitted to receiver ${receiverId}'s room:`, message);
+      }
+    );
+  });
+
+  // Handle user disconnect
+  socket.on("disconnect", () => {
+    console.log("A user disconnected:", socket.id);
+  });
+});
+
+
 
 // Helper function to generate prefixed ID
 function generatePrefixedId(prefix, id) {
@@ -115,7 +374,7 @@ app.post('/api/login', (req, res) => {
 
 // Fetch users to verify (students, advisors, etc.)
 app.get('/api/students-pending', (req, res) => {
-  
+
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
       SELECT * FROM students WHERE isVerified = 'Pending'
@@ -129,9 +388,260 @@ app.get('/api/students-pending', (req, res) => {
   });
 });
 
+app.post('/api/thesis-review-acceptance', (req, res) => {
+  const { studentId, thesisId, advisorId, date, comment } = req.body;
+
+  // Step 1: Insert into ThesisReviewAcceptance
+  const insertQuery = `
+        INSERT INTO ThesisReviewAcceptance (studentId, thesisId, advisorId, date, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+  db.query(insertQuery, [studentId, thesisId, advisorId, date, comment], (err, result) => {
+    if (err) {
+      console.error('Error inserting thesis review acceptance:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Step 2: Select the matching advisor
+    const selectQuery = `
+            SELECT 
+        thesisId,
+        CASE 
+            WHEN req1ReviewAdvisorId = advisorId THEN 'req1ReviewAdvisorId'
+            WHEN req2ReviewAdvisorId = advisorId THEN 'req2ReviewAdvisorId'
+            WHEN req3ReviewAdvisorId = advisorId THEN 'req3ReviewAdvisorId'
+            ELSE NULL
+        END AS matchingAdvisor
+    FROM 
+        thesis
+        CROSS JOIN (SELECT ? AS advisorId) param
+    WHERE 
+        thesisId = ? AND
+        (req1ReviewAdvisorId = advisorId OR 
+         req2ReviewAdvisorId = advisorId OR 
+         req3ReviewAdvisorId = advisorId);
+        `;
+
+    db.query(selectQuery, [advisorId, thesisId,], (err, results) => {
+      if (err) {
+        console.error('Error fetching thesis:', err.message);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (results.length > 0) {
+        const matchingAdvisor = results[0].matchingAdvisor; // Get the matching advisor column
+
+        // Step 3: Prepare the update query based on the matching advisor
+        let updateQuery = '';
+        if (matchingAdvisor === 'req1ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req1ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req2ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req2ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req3ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req3ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        }
+
+        // Step 4: Execute the update query if a matching advisor was found
+        if (updateQuery) {
+          db.query(updateQuery, [thesisId], (updateErr) => {
+            if (updateErr) {
+              console.error('Error updating thesis status:', updateErr.message);
+              return res.status(500).json({ error: 'Database error during update' });
+            }
+            res.json({ message: 'Thesis status updated successfully', thesisId });
+          });
+        } else {
+          res.json({ message: 'No matching advisor found, no status updated', thesisId });
+        }
+      } else {
+        res.status(404).json({ message: 'No thesis found for the given advisor and thesis ID' });
+      }
+    });
+  });
+});
+
+
+//Send notifications
+app.post('/api/sendNotifications', (req, res) => {
+  const { userId, message } = req.body;
+  console.log(userId + message)
+  // Update status of user to 'declined'
+  const query = `
+      INSERT INTO notifications values(?, ?, CURRENT_TIMESTAMP)
+  `;
+
+  db.query(query, [userId, message], (err, result) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json({ message: 'done' });
+  });
+});
+
+
+
+
+// Fetch users to verify (students, advisors, etc.)
+app.post('/api/updateProfile', (req, res) => {
+  const userData = req.body;
+  const keys = Object.keys(userData);
+  const userid = userData[keys[1]]
+  let query = "";
+  const firstName = userData.firstName;
+  const lastName = userData.lastName;
+  const education = userData.education;
+  // console.log("da".includes(userid));
+  if (userid.includes("s")) {
+    query = `UPDATE students
+SET firstName = ?, lastName = ?, education = ?
+WHERE studentId = ?;`
+  }
+  else if (userid.includes("da")) {
+    query = `UPDATE departmentadmins
+SET firstName = ?, lastName = ?, education = ?
+WHERE departmentAdminId = ?;`
+  }
+  else if (userid.includes("v")) {
+    query = `UPDATE visitors
+SET firstName = ?, lastName = ?, education = ?
+WHERE visitorId = ?;`
+  }
+  else if (userid.includes("a")) {
+    query = `UPDATE advisors
+SET firstName = ?, lastName = ?, education = ?
+WHERE advisorId = ?;`
+  }
+  console.log(query)
+  db.query(query, [firstName, lastName, education, userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json({ message: "update successful" }); // Send the user data as a JSON response
+  });
+
+});
+
+app.get('/api/theses-approved/:userid', (req, res) => {
+
+  const { userid } = req.params;
+  // SQL query to get users whose status is "pending" or "not verified"
+  const query = `
+      SELECT * from thesis WHERE studentId = ? AND (refAdvisorAcceptance = 'APPROVED'
+        AND req1ReviewStatus = 'APPROVED'
+        AND req2ReviewStatus = 'APPROVED'
+        AND req3ReviewStatus = 'APPROVED'
+        AND publishStatus = 'PENDING');
+  `;
+
+  db.query(query, [userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+app.get('/api/theses-declined/:userid', (req, res) => {
+
+  const { userid } = req.params;
+  // SQL query to get users whose status is "pending" or "not verified"
+  const query = `
+      SELECT * 
+FROM thesis 
+WHERE studentId = ?
+  AND (
+        refAdvisorAcceptance = 'REJECTED'
+        OR req1ReviewStatus = 'REJECTED'
+        OR req2ReviewStatus = 'REJECTED'
+        OR req3ReviewStatus = 'REJECTED'
+      );
+  `;
+
+  db.query(query, [userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+app.get('/api/theses-pending/:userid', (req, res) => {
+
+  const { userid } = req.params;
+  // SQL query to get users whose status is "pending" or "not verified"
+  const query = `
+      SELECT * 
+FROM thesis 
+WHERE studentId = ?
+  AND (
+        refAdvisorAcceptance = 'PENDING'
+        OR req1ReviewStatus = 'PENDING'
+        OR req2ReviewStatus = 'PENDING'
+        OR req3ReviewStatus = 'PENDING'
+      );
+  `;
+
+  db.query(query, [userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+app.get('/api/theses-published/:userid', (req, res) => {
+
+  const { userid } = req.params;
+  // SQL query to get users whose status is "pending" or "not verified"
+  const query = `
+      SELECT * 
+FROM thesis 
+WHERE studentId = ?
+  AND publishStatus = 'APPROVED';
+  `;
+
+  db.query(query, [userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+app.get('/api/notifications/:userid', (req, res) => {
+
+  const { userid } = req.params;
+  // SQL query to get users whose status is "pending" or "not verified"
+  const query = `
+      SELECT message, timestamp FROM notifications WHERE user_id=? ORDER BY timestamp DESC
+  `;
+
+  db.query(query, [userid], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+
+//clear notifications
+app.post('/api/clearNotifications/:userid', (req, res) => {
+
+  const { userid } = req.params;
+
+  const query = `
+      DELETE from notifications WHERE user_id=?
+  `;
+
+  db.query(query, [userid], (err) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json({ message: "successful" }); // Send the user data as a JSON response
+  });
+});
+
+
 // Fetch users to verify (students, advisors, etc.)
 app.get('/api/students-declined', (req, res) => {
- 
+
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
       SELECT * FROM students WHERE isVerified = 'Declined'
@@ -147,7 +657,7 @@ app.get('/api/students-declined', (req, res) => {
 
 // Fetch users to verify (students, advisors, etc.)
 app.get('/api/students-approved', (req, res) => {
-  
+
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
       SELECT * FROM students WHERE isVerified = 'Approved'
@@ -158,6 +668,24 @@ app.get('/api/students-approved', (req, res) => {
       return res.json({ error: err.message });
     }
     res.json(results); // Send the user data as a JSON response
+  });
+});
+
+app.post('/api/publish-thesis/:thesisId', (req, res) => {
+  const { thesisId } = req.params;
+
+  // Update status of user to 'approved'
+  const query = `
+      UPDATE thesis SET publishStatus = 'Approved', publishDateTime = CURRENT_TIMESTAMP
+WHERE thesisId = ?;
+  `;
+
+  db.query(query, [thesisId], (err, result) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    console.log('Query result:', result);
+    res.json({ message: 'thesis published successfully' });
   });
 });
 // Approve a user
@@ -364,13 +892,14 @@ app.get('/api/approved-theses', (req, res) => {
 });
 app.post('/api/submit-thesis', (req, res) => {
   const {
-      title,
-      abstract,
-      studentId,
-      refadvisorIds,
-      requestedAdvisorIds = [],
-      referencedThesisIds = [],
-      fileName
+    title,
+    abstract,
+    thesisKeywords = [],
+    studentId,
+    refadvisorIds,
+    requestedAdvisorIds = [],
+    referencedThesisIds = [],
+    fileName
   } = req.body;
 
   // Set dynamic values for advisor IDs based on requestedAdvisorIds
@@ -380,6 +909,8 @@ app.post('/api/submit-thesis', (req, res) => {
 
   // Convert referencedThesisIds to JSON format
   const refThesisID = JSON.stringify(referencedThesisIds);
+  const thesisKeywordsJSON = JSON.stringify(thesisKeywords);
+
 
   // Insert query with placeholders
   const insertQuery = `
@@ -392,64 +923,67 @@ app.post('/api/submit-thesis', (req, res) => {
           req1ReviewAdvisorId,
           req2ReviewAdvisorId,
           req3ReviewAdvisorId,
-          filePath
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          filePath,
+          thesisKeywords
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   // Execute the insert query
   db.query(insertQuery, [
-      studentId,
-      title,
-      abstract,
-      refadvisorIds,
-      refThesisID,
-      req1ReviewAdvisorId,
-      req2ReviewAdvisorId,
-      req3ReviewAdvisorId,
-      fileName
+    studentId,
+    title,
+    abstract,
+    refadvisorIds,
+    refThesisID,
+    req1ReviewAdvisorId,
+    req2ReviewAdvisorId,
+    req3ReviewAdvisorId,
+    fileName,
+    thesisKeywordsJSON
   ], (error, results) => {
-      if (error) {
-          console.error('Error inserting thesis:', error);
-          return res.status(500).json({ message: 'Error inserting thesis' });
-      }
+    if (error) {
+      console.error('Error inserting thesis:', error);
+      return res.status(500).json({ message: 'Error inserting thesis' });
+    }
 
-      // Update thesisId to be 't' + id (concatenated string)
-      const updateQuery = `
+    // Update thesisId to be 't' + id (concatenated string)
+    const updateQuery = `
           UPDATE thesis
           SET thesisId = CONCAT('t', id)
           WHERE id = ?
       `;
 
-      // Execute the update query
-      db.query(updateQuery, [results.insertId], (updateError) => {
-          if (updateError) {
-              console.error('Error updating thesisId:', updateError);
-              return res.status(500).json({ message: 'Error updating thesisId' });
-          }
+    // Execute the update query
+    db.query(updateQuery, [results.insertId], (updateError) => {
+      if (updateError) {
+        console.error('Error updating thesisId:', updateError);
+        return res.status(500).json({ message: 'Error updating thesisId' });
+      }
 
-          // Send success response
-          res.json({
-              message: 'Thesis submitted successfully!',
-              thesisId: `t${results.insertId}`
-          });
+      // Send success response
+      res.json({
+        message: 'Thesis submitted successfully!',
+        thesisId: `t${results.insertId}`
       });
+    });
   });
 });
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
 // Define storage options with a destination path and filename
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Specify the directory where files will be saved
-    const uploadDir = 'uploads/'; 
+    const uploadDir = 'uploads/';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true }); // Create the folder if it doesn't exist
     }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    console.log("check me:",req.body);
+    console.log("check me:", req.body);
     cb(null, file.originalname);
   }
 });
@@ -464,18 +998,55 @@ app.get('/api/download/:id', (req, res) => {
   const filePath = path.join(__dirname, 'uploads/', `${id}.pdf`);
 
   // Check if file exists
-  res.download(filePath, `${id}.pdf`, (err) => {
+  fs.exists(filePath, (exists) => {
+    if (!exists) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    // Increment download count in database
+    const query = "UPDATE thesis SET downloadsCount = downloadsCount + 1 WHERE thesisId = ?";
+    db.query(query, [id], (err, results) => {
       if (err) {
-          console.error("Error downloading file:", err);
-          res.status(404).json({ error: "File not found" });
+        console.error("Error updating download count:", err.message);
+        // Consider how to handle this case, e.g., log the error and proceed
       }
+
+      // Proceed to send the file
+      res.download(filePath, `${id}.pdf`, (err) => {
+        if (err) {
+          console.error("Error downloading file:", err);
+          return res.status(500).json({ error: "Error serving file" });
+        }
+      });
+    });
   });
 });
+
+app.get('/api/viewfile/:id', (req, res) => {
+  const { id } = req.params;
+  const filePath = path.join(__dirname, 'uploads/', `${id}.pdf`);
+
+  // Check if file exists
+  fs.exists(filePath, (exists) => {
+    if (!exists) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    // Proceed to send the file
+    res.download(filePath, `${id}.pdf`, (err) => {
+      if (err) {
+        console.error("Error downloading file:", err);
+        return res.status(500).json({ error: "Error serving file" });
+      }
+    });
+  });
+});
+
 // Handle the file upload route
 app.post('/api/upload-file', (req, res) => {
-  console.log("first:",req.body);
+  console.log("first:", req.body);
   upload(req, res, (err) => {
-    console.log("here:",req.body);
+    console.log("here:", req.body);
     if (err) {
       // Handle multer errors like file size or file type issues
       if (err.code === 'LIMIT_FILE_SIZE') {
@@ -485,7 +1056,7 @@ app.post('/api/upload-file', (req, res) => {
       }
     }
     if (req.file) {
-      
+
       // Respond with success and the uploaded file details
       return res.status(200).json({
         message: 'File uploaded successfully!',
@@ -504,7 +1075,7 @@ app.post('/api/upload-file', (req, res) => {
 
 app.post('/api/pending-ref-theses', (req, res) => {
   const { advisorId } = req.body;
-  console.log("ADid:",advisorId);
+  console.log("ADid:", advisorId);
   const query = `
      SELECT *
         FROM thesis
@@ -513,7 +1084,7 @@ app.post('/api/pending-ref-theses', (req, res) => {
 
   `;
 
-  db.query(query,[advisorId], (err, results) => {
+  db.query(query, [advisorId], (err, results) => {
     if (err) {
       return res.json({ error: err.message });
     }
@@ -525,7 +1096,7 @@ app.post('/api/pending-req-theses', (req, res) => {
   const { advisorId } = req.body;
 
   if (!advisorId) {
-      return res.status(400).json({ error: 'Advisor ID is required' });
+    return res.status(400).json({ error: 'Advisor ID is required' });
   }
 
   // MySQL query to find theses with the advisorId in any of the specified columns
@@ -536,17 +1107,17 @@ app.post('/api/pending-req-theses', (req, res) => {
   `;
 
   db.query(query, [advisorId, advisorId, advisorId], (err, results) => {
-      if (err) {
-          console.error("Error retrieving theses:", err);
-          return res.status(500).json({ error: 'An error occurred while retrieving theses' });
-      }
+    if (err) {
+      console.error("Error retrieving theses:", err);
+      return res.status(500).json({ error: 'An error occurred while retrieving theses' });
+    }
 
-      if (results.length === 0) {
-          return res.status(404).json({ message: 'No theses found for the specified advisor' });
-      }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No theses found for the specified advisor' });
+    }
 
-      // Send the results back to the client
-      res.status(200).json(results);
+    // Send the results back to the client
+    res.status(200).json(results);
   });
 });
 
@@ -554,7 +1125,7 @@ app.get('/api/students-approved-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -574,13 +1145,13 @@ app.get('/api/students-approved-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 
@@ -588,7 +1159,7 @@ app.get('/api/students-declined-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -608,13 +1179,13 @@ app.get('/api/students-declined-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 
@@ -622,7 +1193,7 @@ app.get('/api/students-pending-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -642,13 +1213,13 @@ app.get('/api/students-pending-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 //here
@@ -656,7 +1227,7 @@ app.get('/api/advisors-approved-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -676,13 +1247,13 @@ app.get('/api/advisors-approved-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 
@@ -690,7 +1261,7 @@ app.get('/api/advisors-declined-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -710,13 +1281,13 @@ app.get('/api/advisors-declined-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 
@@ -724,7 +1295,7 @@ app.get('/api/advisors-pending-search/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
 
   if (!searchTerm) {
-      return res.status(400).json({ error: 'Search term is required' });
+    return res.status(400).json({ error: 'Search term is required' });
   }
 
   // Format the search term to include wildcards for partial matching
@@ -744,13 +1315,13 @@ app.get('/api/advisors-pending-search/:searchTerm', (req, res) => {
 
   // Execute the query with the search term bound to each LIKE condition
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
-      if (err) {
-          console.error("Error retrieving students:", err);
-          return res.status(500).json({ error: "Database error" });
-      }
-      
-      // Send the retrieved data as JSON response
-      res.json(results);
+    if (err) {
+      console.error("Error retrieving students:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    // Send the retrieved data as JSON response
+    res.json(results);
   });
 });
 app.post('/api/logout', (req, res) => {
@@ -762,6 +1333,703 @@ app.post('/api/logout', (req, res) => {
     res.status(200).json({ message: 'Logout successful' });
   });
 });
+
+
+app.post('/api/thesis-review-acceptance', (req, res) => {
+  const { studentId, thesisId, advisorId, date, comment } = req.body;
+
+  // Step 1: Insert into ThesisReviewAcceptance
+  const insertQuery = `
+        INSERT INTO ThesisReviewAcceptance (studentId, thesisId, advisorId, date, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+  db.query(insertQuery, [studentId, thesisId, advisorId, date, comment], (err, result) => {
+    if (err) {
+      console.error('Error inserting thesis review acceptance:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Step 2: Select the matching advisor
+    const selectQuery = `
+            SELECT 
+        thesisId,
+        CASE 
+            WHEN req1ReviewAdvisorId = advisorId THEN 'req1ReviewAdvisorId'
+            WHEN req2ReviewAdvisorId = advisorId THEN 'req2ReviewAdvisorId'
+            WHEN req3ReviewAdvisorId = advisorId THEN 'req3ReviewAdvisorId'
+            ELSE NULL
+        END AS matchingAdvisor
+    FROM 
+        thesis
+        CROSS JOIN (SELECT ? AS advisorId) param
+    WHERE 
+        thesisId = ? AND
+        (req1ReviewAdvisorId = advisorId OR 
+         req2ReviewAdvisorId = advisorId OR 
+         req3ReviewAdvisorId = advisorId);
+        `;
+
+    db.query(selectQuery, [advisorId, thesisId,], (err, results) => {
+      if (err) {
+        console.error('Error fetching thesis:', err.message);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (results.length > 0) {
+        const matchingAdvisor = results[0].matchingAdvisor; // Get the matching advisor column
+
+        // Step 3: Prepare the update query based on the matching advisor
+        let updateQuery = '';
+        if (matchingAdvisor === 'req1ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req1ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req2ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req2ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req3ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req3ReviewStatus = 'APPROVED' WHERE thesisId = ?`;
+        }
+
+        // Step 4: Execute the update query if a matching advisor was found
+        if (updateQuery) {
+          db.query(updateQuery, [thesisId], (updateErr) => {
+            if (updateErr) {
+              console.error('Error updating thesis status:', updateErr.message);
+              return res.status(500).json({ error: 'Database error during update' });
+            }
+            res.json({ message: 'Thesis status updated successfully', thesisId });
+          });
+        } else {
+          res.json({ message: 'No matching advisor found, no status updated', thesisId });
+        }
+      } else {
+        res.status(404).json({ message: 'No thesis found for the given advisor and thesis ID' });
+      }
+    });
+  });
+});
+
+app.post('/api/thesis-review-decline', (req, res) => {
+  const { studentId, thesisId, advisorId, date, comment } = req.body;
+
+  // Step 1: Insert into ThesisReviewAcceptance
+  const insertQuery = `
+        INSERT INTO ThesisReviewDecline (studentId, thesisId, advisorId, date, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+  db.query(insertQuery, [studentId, thesisId, advisorId, date, comment], (err, result) => {
+    if (err) {
+      console.error('Error inserting thesis review decline:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Step 2: Select the matching advisor
+    const selectQuery = `
+            SELECT 
+        thesisId,
+        CASE 
+            WHEN req1ReviewAdvisorId = advisorId THEN 'req1ReviewAdvisorId'
+            WHEN req2ReviewAdvisorId = advisorId THEN 'req2ReviewAdvisorId'
+            WHEN req3ReviewAdvisorId = advisorId THEN 'req3ReviewAdvisorId'
+            ELSE NULL
+        END AS matchingAdvisor
+    FROM 
+        thesis
+        CROSS JOIN (SELECT ? AS advisorId) param
+    WHERE 
+        thesisId = ? AND
+        (req1ReviewAdvisorId = advisorId OR 
+         req2ReviewAdvisorId = advisorId OR 
+         req3ReviewAdvisorId = advisorId);
+        `;
+
+    db.query(selectQuery, [advisorId, thesisId,], (err, results) => {
+      if (err) {
+        console.error('Error fetching thesis:', err.message);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (results.length > 0) {
+        const matchingAdvisor = results[0].matchingAdvisor; // Get the matching advisor column
+
+        // Step 3: Prepare the update query based on the matching advisor
+        let updateQuery = '';
+        if (matchingAdvisor === 'req1ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req1ReviewStatus = 'REJECTED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req2ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req2ReviewStatus = 'REJECTED' WHERE thesisId = ?`;
+        } else if (matchingAdvisor === 'req3ReviewAdvisorId') {
+          updateQuery = `UPDATE thesis SET req3ReviewStatus = 'REJECTED' WHERE thesisId = ?`;
+        }
+
+        // Step 4: Execute the update query if a matching advisor was found
+        if (updateQuery) {
+          db.query(updateQuery, [thesisId], (updateErr) => {
+            if (updateErr) {
+              console.error('Error updating thesis status:', updateErr.message);
+              return res.status(500).json({ error: 'Database error during update' });
+            }
+            res.json({ message: 'Thesis status updated successfully', thesisId });
+          });
+        } else {
+          res.json({ message: 'No matching advisor found, no status updated', thesisId });
+        }
+      } else {
+        res.status(404).json({ message: 'No thesis found for the given advisor and thesis ID' });
+      }
+    });
+  });
+});
+
+
+app.post('/api/thesis-reference-acceptance', (req, res) => {
+  const { studentId, thesisId, advisorId, date, comment } = req.body;
+
+  // Step 1: Insert into ThesisReviewAcceptance
+  const insertQuery = `
+        INSERT INTO ThesisReferenceAcceptance (studentId, thesisId, advisorId, date, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+  db.query(insertQuery, [studentId, thesisId, advisorId, date, comment], (err, result) => {
+    if (err) {
+      console.error('Error inserting thesis reference acceptance:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Step 2: Select the matching thesis and update refAdvisorAcceptance
+    const updateQuery = `
+        UPDATE thesis
+        SET refAdvisorAcceptance = 'APPROVED'
+        WHERE refAdvisorId = ? AND thesisId = ?
+    `;
+
+    db.query(updateQuery, [advisorId, thesisId], (err, result) => {
+      if (err) {
+        console.error('Error updating thesis acceptance:', err.message);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(200).json({ message: 'Thesis reference acceptance recorded and updated successfully' });
+    });
+  });
+});
+
+app.post('/api/thesis-reference-decline', (req, res) => {
+  const { studentId, thesisId, advisorId, date, comment } = req.body;
+
+  // Step 1: Insert into ThesisReviewAcceptance
+  const insertQuery = `
+        INSERT INTO ThesisReferenceDecline (studentId, thesisId, advisorId, date, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+  db.query(insertQuery, [studentId, thesisId, advisorId, date, comment], (err, result) => {
+    if (err) {
+      console.error('Error inserting thesis reference decline:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Step 2: Select the matching thesis and update refAdvisorAcceptance
+    const updateQuery = `
+        UPDATE thesis
+        SET refAdvisorAcceptance = 'REJECTED'
+        WHERE refAdvisorId = ? AND thesisId = ?
+    `;
+
+    db.query(updateQuery, [advisorId, thesisId], (err, result) => {
+      if (err) {
+        console.error('Error updating thesis decline:', err.message);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(200).json({ message: 'Thesis reference decline recorded and updated successfully' });
+    });
+  });
+});
+
+
+app.get('/api/searchThesis/:searchTerm', (req, res) => {
+  const { searchTerm } = req.params;
+
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  const query = `SELECT * FROM thesis where title LIKE ? OR submittedDateTime LIKE ? OR abstract LIKE ? OR thesisKeywords LIKE ?`;
+
+  db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get('/api/searchThesis/byTitle/:topic', (req, res) => {
+  const { topic } = req.params;
+
+  if (!topic) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+
+  const query = `SELECT * FROM thesis where title = ? `;
+
+  db.query(query, [topic], (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchThesis/getTitle/:', (req, res) => {
+
+  const query = `SELECT distinct title FROM thesis`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get('/api/searchThesis/byAuthor/:author', (req, res) => {
+  const { author } = req.params;
+
+  if (!author) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+
+  const query = `SELECT * FROM thesis where studentId = ? `;
+
+  db.query(query, [author], (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchThesis/getAuthor/:', (req, res) => {
+
+  const query = `SELECT distinct studentId FROM thesis `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchThesis/byYear/:year', (req, res) => {
+  const { year } = req.params;
+
+  if (!year) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+
+  const query = `SELECT * FROM thesis where YEAR(submittedDatetime) = ? `;
+
+  db.query(query, [year], (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get('/api/searchThesis/getYear/:', (req, res) => {
+
+  const query = `SELECT distinct YEAR(submittedDatetime) as year FROM thesis `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchThesis/byKeyword/:thesisKeyword', (req, res) => {
+  const { thesisKeyword } = req.params;
+
+  if (!thesisKeyword) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  const jsonFormattedKeyword = `"${thesisKeyword}"`;
+  const query = `SELECT * FROM thesis WHERE JSON_CONTAINS(thesisKeywords, ?) `;
+
+  db.query(query, [jsonFormattedKeyword], (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchThesis/getKeywords/:', (req, res) => {
+
+  const query = `SELECT DISTINCT keywords
+                  FROM thesis, 
+                  JSON_TABLE(thesisKeywords, '$[*]' COLUMNS(keywords VARCHAR(255) PATH '$')) AS jt
+                 WHERE keywords IS NOT NULL AND keywords != '';`
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving thesis:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+
+  });
+});
+
+
+//Kaustubh's Additions:
+app.post('/api/post-comment', (req, res) => {
+  const { userId, name, thesisId, commenttext } = req.body;
+  const query = "INSERT INTO comments (userId, name, thesisId, commenttext) VALUES (?, ?, ?, ?)";
+
+  db.query(query, [userId, name, thesisId, commenttext], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    // Return the newly created comment
+    const newComment = {
+      id: result.insertId,
+      userId,
+      name,
+      thesisId,
+      commenttext
+    };
+    res.status(201).json(newComment);
+  });
+});
+
+app.get('/api/get-comments/:thesisId', (req, res) => {
+  const { thesisId } = req.params;
+  const query = "SELECT * FROM comments WHERE thesisId = ?";
+
+  db.query(query, [thesisId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/gettopthesisdetails', (req, res) => {
+  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy, t.publishDatetime as uploadDate FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.likesCount desc;";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  })
+});
+
+app.get('/api/gettopdownloadeddetails', (req, res) => {
+  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy, t.publishDatetime as uploadDate FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.downloadsCount desc where publishStatus = 'APPROVED';";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  })
+});
+app.get('/api/getmostrecentdetails', (req, res) => {
+  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId,t.publishDatetime as uploadDate, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.publishDatetime desc where publishStatus = 'APPROVED';";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  })
+});
+
+// POST endpoint for contact form submissions
+app.post('/api/contact', (req, res) => {
+  const { firstName, lastName, email, inquiryType, thesisId, message } = req.body;
+
+  // Insert the contact form data into the database
+  const query = `
+      INSERT INTO contact_submissions
+      (first_name, last_name, email, inquiry_type, thesis_id, message)
+      VALUES (?, ?, ?, ?, ?, ?);
+  `;
+
+  db.query(query, [firstName, lastName, email, inquiryType, thesisId || null, message], (error, results) => {
+    if (error) {
+      console.error('Error inserting contact form data:', error);
+      return res.status(500).json({ message: 'Error saving contact form data', error: error.message });
+    }
+    res.json({ message: 'Contact form submitted successfully', id: results.insertId });
+  });
+});
+
+
+app.get('/api/getauthorthesis/:authorid', (req, res) => {
+  const authorId = req.params.authorid;
+
+  const query = "SELECT thesisId, title from thesis where studentId = ? and publishStatus = 'APPROVED'";
+
+  db.query(query, [authorId], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/get-references/:ids', (req, res) => {
+  const ids = req.params.ids.split(',');
+  const query = 'SELECT title FROM thesis WHERE thesisId IN (?)';
+  db.query(query, [ids], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: err.message });
+    }
+    res.json(results); // Send back an array of titles
+  });
+});
+
+
+
+app.get('/api/view-thesis/:id', (req, res) => {
+  id = req.params.id;
+  if (!id) {
+    return res.status(400).json({ message: 'Invalid thesis ID' });
+  }
+  id = id.slice(1);
+  console.log(id);
+  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.refThesisID, t.thesisKeywords, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.id = ?;";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results[0]); // Send the user data as a JSON response
+  });
+});
+
+app.get('/api/gettopthesis', (req, res) => {
+  const query = "SELECT thesisId, title from thesis order by likesCount desc where publishStatus = 'APPROVED'";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  })
+});
+
+app.get('/api/check-like/:thesisId/:userId', (req, res) => {
+  const { thesisId, userId } = req.params;
+  const query = 'SELECT 1 FROM userhasliked WHERE userId = ? AND thesisId = ?';
+
+  db.query(query, [userId, thesisId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    const liked = results.length > 0;
+    res.json({ liked });
+  });
+});
+
+app.post('/api/toggle-like', (req, res) => {
+  const { userId, thesisId, liked } = req.body;
+
+  if (liked) {
+    // Attempt to insert a like entry and increment the likes count
+    const insertQuery = 'INSERT INTO userhasliked (userId, thesisId) VALUES (?, ?) ON DUPLICATE KEY UPDATE thesisId=thesisId';
+    db.query(insertQuery, [userId, thesisId], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      // Increment likes count in thesis table
+      const incrementLikesQuery = 'UPDATE thesis SET likesCount = likesCount + 1 WHERE thesisId = ?';
+      db.query(incrementLikesQuery, [thesisId], (likesErr) => {
+        if (likesErr) {
+          return res.status(500).json({ error: likesErr.message });
+        }
+        res.json({ message: "Like added and count incremented successfully" });
+      });
+    });
+  } else {
+    // Attempt to delete a like entry and decrement the likes count
+    const deleteQuery = 'DELETE FROM userhasliked WHERE userId = ? AND thesisId = ?';
+    db.query(deleteQuery, [userId, thesisId], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (result.affectedRows > 0) {
+        // Decrement likes count in thesis table
+        const decrementLikesQuery = 'UPDATE thesis SET likesCount = GREATEST(likesCount - 1, 0) WHERE thesisId = ?;';
+        db.query(decrementLikesQuery, [thesisId], (likesErr) => {
+          if (likesErr) {
+            return res.status(500).json({ error: likesErr.message });
+          }
+          res.json({ message: "Like removed and count decremented successfully" });
+        });
+      } else {
+        res.json({ message: "No like found to remove, no count decremented" });
+      }
+    });
+  }
+});
+
+app.get('/api/chat/users', (req, res) => {
+  const query = `
+    SELECT 
+      CONCAT('s', id) AS id, firstName, lastName, email, 'Student' AS role, isVerified
+    FROM students 
+    WHERE isVerified = 'Approved'
+    UNION
+    SELECT 
+      CONCAT('a', id) AS id, firstName, lastName, email, 'Advisor' AS role, isVerified
+    FROM advisors 
+    WHERE isVerified = 'Approved'
+    UNION
+    SELECT 
+      CONCAT('da', id) AS id, firstName, lastName, email, 'Department Admin' AS role, NULL AS isVerified
+    FROM departmentadmins
+    ORDER BY role, firstName, lastName;
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/chat/users/order', (req, res) => {
+  // Retrieve the dynamic user ID from the query parameter
+  const userId = req.query.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing required parameter: userId' });
+  }
+
+  const query = `
+   WITH LatestMessages AS (
+    SELECT 
+        CASE 
+            WHEN m.senderId = ? THEN m.receiverId
+            ELSE m.senderId
+        END AS userId,
+        m.*
+    FROM messages m
+    WHERE ? IN (m.senderId, m.receiverId)
+      AND m.timestamp = (
+          SELECT MAX(m2.timestamp)
+          FROM messages m2
+          WHERE (m2.senderId = m.senderId AND m2.receiverId = m.receiverId)
+             OR (m2.senderId = m.receiverId AND m2.receiverId = m.senderId)
+      )
+)
+SELECT 
+    u.*, 
+    lm.* 
+FROM users u
+LEFT OUTER JOIN LatestMessages lm
+ON u.userId = lm.userId
+ORDER BY lm.timestamp DESC;
+  `;
+
+  db.query(query, [userId, userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+    res.json(results);
+  });
+});
+
+// Fetch chat history between two users
+app.get('/api/chat/history', (req, res) => {
+  const { senderId, receiverId } = req.query;
+
+  if (!senderId || !receiverId) {
+    return res.status(400).json({ error: 'Both senderId and receiverId are required' });
+  }
+
+  const query = `
+    SELECT senderId, receiverId, message, timestamp, status
+    FROM messages
+    WHERE (senderId = ? AND receiverId = ?) OR (senderId = ? AND receiverId = ?)
+    ORDER BY timestamp;
+  `;
+
+  db.query(query, [senderId, receiverId, receiverId, senderId], (err, results) => {
+    if (err) {
+      console.error('Error fetching chat history:', err);
+      return res.status(500).json({ error: 'Failed to fetch chat history' });
+    }
+    res.json(results);
+  });
+});
+
+// Send a new message
+app.post('/api/chat/send', async (req, res) => {
+
+
+  const { senderId, receiverId, message } = req.body;
+
+  const query = `
+     INSERT INTO messages (senderId, receiverId, message) VALUES (?, ?, ?)
+
+  `;
+  console.log("entered into server.js");
+  console.log(senderId, receiverId, message);
+  db.query(query, [senderId, receiverId, message], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    console.log(results);
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+
+
+
+
+
+
 
 
 const PORT = 3001;

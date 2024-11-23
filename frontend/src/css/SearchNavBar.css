@@ -134,3 +134,50 @@
     }
     
 }
+.searchnavbar .left-section {
+    position: relative; /* Positioning context for dropdown alignment */
+    display: flex;
+    align-items: center;
+}
+
+.inputsn {
+    border-radius: 30px;
+    padding: 1%;
+    border: none;
+    line-height: 100%;
+    background-color: #2b2b2b;
+    font-size: 100%;
+    box-shadow: inset 4px 4px 5px rgb(65, 65, 65);
+    color: white;
+    width: 35%; /* Define a fixed width for the search bar */
+    position: relative; /* Positioning context for the dropdown */
+}
+
+.searchnavbar ul {
+    position: absolute;
+    top: calc(100% + 5px); /* Position below the search bar */
+    left: 0; /* Align with the search bar */
+    background-color: #2b2b2b;
+    color: white;
+    width: 100%; /* Match the width of the search bar */
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1100; /* Ensure it overlaps main content */
+    overflow-y: auto;
+    max-height: 200px; /* Adds a max height for large dropdowns */
+}
+
+.searchnavbar ul li {
+    padding: 10px;
+    cursor: pointer;
+    background: transparent; /* Default background */
+    border-bottom: 1px solid #444; /* Divider */
+}
+
+.searchnavbar ul li:hover {
+    background: rgba(0, 0, 0, 0.8); /* Dark background on hover */
+    color: white;
+}
