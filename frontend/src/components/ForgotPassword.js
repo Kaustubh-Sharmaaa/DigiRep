@@ -1,8 +1,10 @@
-import React, { useState } from 'react'; // Importing React and useState for managing state
+import React, { useState, useEffect } from 'react'; // Importing React and useState for managing state
 import '../css/ForgotPassword.css'; // Importing custom CSS for styling the Forgot Password page
 import Navbar from './NavBar'; // Importing the Navbar component for navigation
 import Footer from './Footer'; // Importing the Footer component
-
+import SearchNavbar from './SearchNavBar';
+import { useNavigate } from 'react-router-dom';
+import ChatComponent from './ChatComponent';
 const ForgotPassword = () => {
     // State to store form inputs
     const [email, setEmail] = useState('');
@@ -12,7 +14,16 @@ const ForgotPassword = () => {
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
     const [error, setError] = useState('');
-
+    const [userData, setUserData] = useState(null);
+    const navigate = useNavigate();
+    useEffect(() => {
+        const storedUserData = JSON.parse(sessionStorage.getItem('user'));
+        console.log("data", storedUserData);
+        if (storedUserData) {
+            setUserData(storedUserData);
+            setEmail(storedUserData.email);
+        }
+    }, []);
     // Handle form submission for sending OTP
     const handleSendOtp = async (e) => {
         e.preventDefault();
@@ -91,7 +102,25 @@ const ForgotPassword = () => {
                 setOtp('');
                 setNewPassword('');
                 setConfirmPassword('');
-            } else {
+                    fetch(`http://localhost:3001/api/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message === "Logout successful") {
+                                sessionStorage.removeItem('user');
+                                alert(`Please Login with your new password!`);
+                                navigate('/');
+                            } else {
+                                alert(`Error:${data.message}`);
+                            }
+                        })
+                        .catch(error => {
+                            console.log("Logout Error:", error);
+                        });
+                }
+             else {
                 const data = await response.json();
                 setError(data.message || 'Failed to reset password');
             }
@@ -102,7 +131,7 @@ const ForgotPassword = () => {
 
     return (
         <div>
-            <Navbar /> {/* Rendering the Navbar */}
+            {userData ? <SearchNavbar /> : <Navbar />}
             <div className='fcenter'> {/* Centering the form */}
                 <fieldset className='fieldsetA'> {/* Fieldset for styling */}
                     <legend className='legendA'> {/* Legend for the fieldset */}
@@ -110,14 +139,16 @@ const ForgotPassword = () => {
                     </legend>
                     <form action="#" className="formM" id="form1">
                         {/* Email Input */}
+                        {/* Email Input */}
                         <input
                             type="email"
                             name="email"
                             placeholder="Email"
                             className="inputFp"
                             required
-                            value={email}
+                            value={userData ? userData.email : email} // Use user's email if userData exists
                             onChange={(e) => setEmail(e.target.value)}
+                            readOnly={!!userData} // Make the field read-only if userData exists
                         />
                         <br />
 
@@ -192,6 +223,8 @@ const ForgotPassword = () => {
             </div>
             <br />
             <Footer /> {/* Rendering the Footer */}
+            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
+
             <br />
             <br />
         </div>

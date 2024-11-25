@@ -1,9 +1,12 @@
 /* File written by: Chagamreddy Navyasree, Student ID: 1002197805 */
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import '../css/RegisterLogin.css'; 
 import '../css/Statistics.css'; 
+import Footer from "./Footer";
+import SearchNavbar from './SearchNavBar'
+
 
 const ProfilePage = () => {
     const userData = JSON.parse(sessionStorage.getItem('user'));
@@ -45,99 +48,109 @@ const ProfilePage = () => {
     };
 
     return (
-        <div  style={{ margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '500px', backgroundColor: '#050505' }}>
-            <h2 style={{ color: 'white' }}>Profile Details</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
-                <tbody>
-                    {Object.keys(formData).map((key) => {
-                        if(key == 'id' || key=='password') return;
-                        
-                        // Only make firstName, lastName, and education editable
-                        if (key === 'firstName' || key === 'lastName' || key === 'education') {
-                            return (
-                                <tr key={key}>
-                                    <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:
-                                    </td>
-                                    <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        {key === 'education' ? (
-                                            <select
-                                                className="inputR"
-                                                name={key}
-                                                value={formData[key]}
-                                                onChange={handleChange}
-                                                style={{ width: '100%', padding: '4px' }}
-                                            >
-                                                <option value="" disabled>Level of Education</option>
-                                                <option value="Bachelor's">Bachelor's</option>
-                                                <option value="Master's">Master's</option>
-                                                <option value="PhD">PhD</option>
-                                            </select>
-                                        ) : (
-                                            <input
-                                                type="text"
-                                                name={key}
-                                                value={formData[key]}
-                                                onChange={handleChange}
-                                                style={{ width: '100%', padding: '4px' }}
-                                            />
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        } 
-                        else if(key.includes("ID"))
-                        {
-                            return (
-                                <tr key={key}>
-                                    <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        Member Id:
-                                    </td>
-                                    <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        <span>{formData[key]}</span>
-                                    </td>
-                                </tr>
-                            );
-                        }
-
-                        else if(key.includes("CreatedAt"))
-                            {
+        <div>
+            <SearchNavbar />
+            <div  style={{ margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '500px', backgroundColor: '#050505' }}>
+                
+                <h2 style={{ color: 'white' }}>Profile Details</h2>
+                <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
+                    <tbody>
+                        {Object.keys(formData).map((key) => {
+                            if(key == 'id' || key=='password') return;
+                            
+                            // Only make firstName, lastName, and education editable
+                            if (key === 'firstName' || key === 'lastName' || key === 'education') {
                                 return (
                                     <tr key={key}>
                                         <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
                                             {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:
                                         </td>
                                         <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                            <span>{new Date(formData[key]).toLocaleString()}</span>
+                                            {key === 'education' ? (
+                                                <select
+                                                    className="inputR"
+                                                    name={key}
+                                                    value={formData[key]}
+                                                    onChange={handleChange}
+                                                    style={{ width: '100%', padding: '4px' }}
+                                                >
+                                                    <option value="" disabled>Level of Education</option>
+                                                    <option value="Bachelor's">Bachelor's</option>
+                                                    <option value="Master's">Master's</option>
+                                                    <option value="PhD">PhD</option>
+                                                </select>
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    name={key}
+                                                    value={formData[key]}
+                                                    onChange={handleChange}
+                                                    style={{ width: '100%', padding: '4px' }}
+                                                />
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            } 
+                            else if(key.includes("ID"))
+                            {
+                                return (
+                                    <tr key={key}>
+                                        <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                            Member Id:
+                                        </td>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                            <span>{formData[key]}</span>
                                         </td>
                                     </tr>
                                 );
                             }
-                        
-                        else {
-                            return (
-                                <tr key={key}>
-                                    <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:
-                                    </td>
-                                    <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
-                                        <span>{formData[key]}</span>
-                                    </td>
-                                </tr>
-                            );
-                        }
-                    })}
-                </tbody>
-            </table>
-            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
-                <button onClick={handleUpdate} className='preview-btn'>
-                    Update
-                </button>
-                <button onClick={handleBack} className='preview-btn'>
-                    Back
-                </button>
+
+                            else if(key.includes("CreatedAt"))
+                                {
+                                    return (
+                                        <tr key={key}>
+                                            <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                                {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:
+                                            </td>
+                                            <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                                <span>{new Date(formData[key]).toLocaleString()}</span>
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+                            
+                            else {
+                                return (
+                                    <tr key={key}>
+                                        <td style={{ fontWeight: 'bold', padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                            {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:
+                                        </td>
+                                        <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                                            <span>{formData[key]}</span>
+                                        </td>
+                                    </tr>
+                                );
+                            }
+                        })}
+                    </tbody>
+                </table>
+                <p className='fp'>
+                            <Link to='/forgotPassword' className='linkfp'>Change Password</Link>
+                        </p>
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={handleUpdate} className='preview-btn-profile'>
+                        Update
+                    </button>
+                    <button onClick={handleBack} className='preview-btn-profile'>
+                        Back
+                    </button>
+                </div>
+                
             </div>
+            <Footer />
         </div>
+        
     );
 };
 

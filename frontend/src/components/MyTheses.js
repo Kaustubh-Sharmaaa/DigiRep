@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
-import ChatComponent from "./ChatComponent";
 import ThesisCard from './ThesisCard';
 import PublishThesisCard from './PublishThesisCard';
+import ChatComponent from './ChatComponent';
 const MyTheses = () => {
     const navigate = useNavigate();
     const userData = JSON.parse(sessionStorage.getItem('user'));
@@ -62,7 +62,7 @@ const MyTheses = () => {
         <div className="dashboard">
             <SearchNavbar />
             <br />
-            <fieldset className='dashboardfs'>
+            <fieldset className='dashboardmt'>
                 <div className='MyThesesDashboard'>
                     <h2>My Theses</h2>
                     <div className='Verification'>
@@ -94,6 +94,7 @@ const MyTheses = () => {
                                                 <PublishThesisCard
                                                     thesis={thesis}
                                                     isTrending={true}
+                                                    onActionComplete={fetchData}
                                                 />
                                                 
                                             </div>
@@ -153,7 +154,7 @@ const MyTheses = () => {
             </fieldset>
             <br />
             <Footer />
-            <ChatComponent />
+            <ChatComponent/>
         </div>
     );
 }

@@ -322,6 +322,7 @@ button{
 @media screen and (max-width:320px) {
     .button-85{
         padding: 6%;
+        width: fit-content;
     }
     
 }

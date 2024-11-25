@@ -46,7 +46,7 @@
     padding: 10px;
     color: white;
     text-decoration: none;
-    background-color: #131313;
+    background-color: #1b1b1b;
     border-style: none;
     text-wrap: balance;
     width: 100%;
@@ -54,8 +54,8 @@
 }
 
 .sidebar-buttons:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: cadetblue;
+    background-color: white;
+    color: black;
 }
 
 

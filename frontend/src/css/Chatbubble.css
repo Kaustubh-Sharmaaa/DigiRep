@@ -1,0 +1,40 @@
+.chatbubble {
+    position: fixed; /* Keeps the bubble in the same place relative to the viewport */
+    color: rgb(4, 4, 255);
+    bottom: 10px; /* Position 10px from the bottom */
+    right: 10px; /* Position 10px from the right */
+    font-size: 650%; /* Adjust the size as needed */
+    z-index: 1000; /* Ensures it appears above other content */
+    /* Add outline styling */
+    stroke: rgb(253, 253, 253); /* Color of the outline */
+    stroke-width: 10px; /* Thickness of the outline */
+    stroke-linejoin: round; /* Ensures smooth joins for the outline */
+    stroke-linecap: round; /* Ensures smooth caps for the outline ends */
+    cursor:pointer;
+}
+.chatbubble:hover{
+    color: rgb(64, 64, 229);
+    transform: scale(1.1);
+}
+.chatbubble.no-messages {
+    color: white;
+    transform: scale(0.9); /* Slightly shrink the icon */
+}
+
+.chatbubble.no-messages:hover{
+    color: rgb(206, 206, 206);
+    transform: scale(1.3);
+}
+.unread-badge{
+    position: fixed;
+    color: white;
+    bottom: 90px; /* Position 10px from the bottom */
+    right: 10px;
+    font-size: 100%;
+    padding: 1%;
+    background-color: red;
+    z-index: 1001;
+    border-radius: 50%;
+    padding-top: 0.5%;
+    padding-bottom: 0.5%;
+}

@@ -1,6 +1,98 @@
-div{
-    color: white;
-}
-.searchResult{
+/* Ensure SearchNavbar remains sticky at the top */
+
+  
+  /* Container for the sidebar and search results */
+  .advance-search-container {
+    display: flex;
+    height: calc(100vh - 60px); /* Subtract the height of SearchNavbar */
+    overflow: hidden;
+  }
+  
+  /* Sidebar styling */
+  .sidebar {
+    width: 250px;
     background-color: rgba(18, 18, 18, 0.854);
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .collapsible-section {
+    margin-bottom: 15px;
+  }
+  
+  .collapsible-button {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .collapsible-content {
+    padding-left: 15px;
+    padding-top: 10px;
+  }
+  
+  .collapsible-content label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  /* Search results styling */
+  .search-results {
+    flex: 1;
+    padding: 20px;
+    background-color: rgba(18, 18, 18, 0.854); /* Same as sidebar */
+    color: white;
+    overflow-y: auto;
+  }
+  
+  .search-results h4 {
+    margin-bottom: 15px;
+  }
+  
+  .search-results p {
+    margin-top: 10px;
+  }
+  /* Styling for checkboxes with labels aligned to the right */
+.collapsible-content div {
+    display: flex;
+    align-items: center; /* Vertically aligns the checkbox with the text */
+    margin-bottom: 10px; /* Adds spacing between options */
+  }
+  
+  .collapsible-content input[type="checkbox"] {
+    margin-right: 10px; /* Adds space between checkbox and text */
+  }
+  
+  .collapsible-content label {
+    display: inline-block; /* Ensures text stays inline with the checkbox */
+  }
+/* Container for thesis cards */
+.thesis-row-search{
+    display: flex;
+    flex-wrap: wrap; /* Allows cards to wrap to the next line if they don't fit */
+    gap: 20px; /* Adds space between cards */
+    justify-content: flex-start; /* Align cards to the left */
+  }
+  
+ 
+/* Container for thesis cards */
+.thesis-row-search{
+    display: flex;
+    flex-wrap: wrap; /* Allows cards to wrap to the next line */
+    gap: 20px; /* Adds space between cards */
+    justify-content: flex-start; /* Aligns cards to the left */
+  }
+  
+  /* Each thesis card styling */
+ 
+.advance-search-results{
+  width: 100%;
+  background-color: rgba(18, 18, 18);
+  color: white;
 }

@@ -9,6 +9,7 @@ import Navbar from './NavBar'; // Import Navbar component for page header
 import SearchNavbar from './SearchNavBar';
 import Footer from './Footer'; // Import Footer component for page footer
 import { useEffect, useState } from 'react';
+import ChatComponent from './ChatComponent';
 // Define the AboutUs component
 const AboutUs = () => {
     const [userData, setUserData] = useState(null);
@@ -140,6 +141,7 @@ const AboutUs = () => {
                 </fieldset>
             </div>
             <Footer /> {/* Renders the footer at the bottom of the page */}
+            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
             <br></br>
             <br></br>
         </div>

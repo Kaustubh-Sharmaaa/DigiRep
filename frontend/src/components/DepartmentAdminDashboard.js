@@ -4,7 +4,6 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
 import { FaNfcSymbol } from 'react-icons/fa6';
-import  ChatComponent from "./ChatComponent";
 
 const DepartmentAdminDashboard = () => {
     const navigate = useNavigate();
@@ -825,7 +824,6 @@ const DepartmentAdminDashboard = () => {
             <br />
 
             <Footer />
-            <ChatComponent />
         </div>
     );
 }

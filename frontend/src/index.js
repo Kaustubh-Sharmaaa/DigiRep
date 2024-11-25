@@ -24,8 +24,13 @@ import ProfilePage from './components/ProfilePage';
 import ViewThesis from './components/ViewThesis';
 import Statistics from './components/Statistics';
 import MyTheses from './components/MyTheses';
+import SearchThesis from './components/SearchThesis';
+import ApprovedRefTheses from './components/ApprovedRefDashboard';
+import ApprovedReqTheses from './components/ApprovedReqDashboard';
 import { BrowserRouter, Routes, Route } from "react-router-dom"; // Imports for routing
-
+import ThesesInquiries from './components/ThesesInquiries';
+import AnswerThesisInquiry from './components/AnswerThesisInquiry';
+import Chat from './components/Chat';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -55,6 +60,12 @@ root.render(
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/student-thesis" element={<MyTheses />}/>
         <Route path="/visitorDashboard" element={<Statistics />} />
+        <Route path="/searchThesis" element={<SearchThesis />} />
+        <Route path="/approvedRefTheses" element={ <ApprovedRefTheses/>}/>
+        <Route path="/approvedReqTheses" element={ <ApprovedReqTheses/>}/>
+        <Route path="/thesesInquiries" element={ <ThesesInquiries/>}/>
+        <Route path="/thesisinquirydetail/:id" element={<AnswerThesisInquiry />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

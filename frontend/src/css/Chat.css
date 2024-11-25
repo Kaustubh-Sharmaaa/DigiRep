@@ -1,0 +1,201 @@
+.chatmaindiv {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+}
+
+.chatusersdiv {
+    width: 50%;
+    height: 450px;
+    overflow-y: auto;
+    overflow-x: auto;
+    font-size: 90%;
+}
+
+.chatdiv {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-user-card {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    border-bottom: 1px solid #f1f1f141;
+    cursor: pointer;
+    padding-top: 5%;
+    padding-bottom: 5%;
+}
+.chat-user-card:hover{
+    background-color: #262626;
+}
+.fieldsetChat {
+    background-color: #131313;
+    border: 1.5px solid #434343;
+    margin-left: 3%;
+    margin-right: 3%;
+    font-size: 100%;
+    text-align: justify;
+    line-height: 150%;
+    border-radius: var(--button-radius);
+    color: white;
+    height: max-content;
+    width: 90vw;
+    display: flex;
+    align-items: center;
+
+}
+
+/* For Chrome, Edge, and Safari */
+::-webkit-scrollbar {
+    width: 12px;
+    /* Width of the scrollbar */
+    height: 12px;
+    /* Height of the scrollbar (horizontal) */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f141;
+    /* Background of the scrollbar track */
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #262626;
+    /* Color of the scrollbar handle */
+    border-radius: 6px;
+    /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #262626;
+    /* Handle color on hover */
+}
+
+.messageDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 1%;
+}
+
+.send-reply {
+    background-color: blue;
+    color: white;
+    padding: 15%;
+    border-radius: 40px;
+    border: 1px solid white;
+}
+
+.send-reply:hover {
+    background-color: white;
+    color: blue;
+    transform: scale(1.1);
+}
+
+.textDiv {
+    width: 100%;
+}
+
+.sendDiv {
+    width: 7%;
+}
+
+.reply-textarea {
+    width: 95%;
+}
+.messagesDiv{
+    height: 370px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.messagesDiv {
+    height: 370px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Webkit-based browsers (Chrome, Safari, Edge) */
+.messagesDiv::-webkit-scrollbar {
+    width: 8px; /* Adjust width of the scrollbar */
+}
+
+.messagesDiv::-webkit-scrollbar-thumb {
+    background-color: #888; /* Scrollbar thumb color */
+    border-radius: 10px; /* Rounded corners for the thumb */
+}
+
+.messagesDiv::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* Hover effect on the thumb */
+}
+
+.messagesDiv::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Background of the track */
+    border-radius: 10px;
+}
+
+.messagesDiv::-webkit-scrollbar-track:hover {
+    background: #e0e0e0; /* Track hover effect */
+}
+
+/* Firefox */
+.messagesDiv {
+    scrollbar-width: thin; /* Set the scrollbar width */
+    scrollbar-color: #888 #f1f1f1; /* Thumb and track colors */
+}
+
+.messagesDiv:hover {
+    scrollbar-color: #555 #e0e0e0; /* Thumb and track hover colors */
+}
+.messagesDiv {
+    height: 370px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.messageCard {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 40px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.userMessage {
+    align-self: flex-end;
+    background-color: white; /* Light green background for user messages */
+    color: #131313;
+    width: 100%;
+}
+
+.otherMessage {
+    align-self: flex-start;
+    background-color: rgb(31, 31, 203); /* Light gray background for other person messages */
+    width: 100%;
+    color: white;
+}
+.unread-count {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 100%;
+    font-size: 100%;
+    margin-right: 30%;
+    padding-top: 80%;
+    padding-bottom: 80%;
+}
+.unread-user {
+    background-color: #181bd1;
+}
+
+.chat-user-card >p{
+    margin: 0;
+    padding: 0;
+}

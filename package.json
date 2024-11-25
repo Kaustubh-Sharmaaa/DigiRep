@@ -9,6 +9,7 @@
     "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\""
   },
   "dependencies": {
+    "all": "^0.0.0",
     "concurrently": "^8.0.1",
     "express-session": "^1.18.1"
   },

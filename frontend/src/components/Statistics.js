@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import ThesisCard from './ThesisCard';
 import SearchNavbar from './SearchNavBar';
 import ChatComponent from './ChatComponent';
-
+import Chat from './Chat';
 
 function CategoryBlock({ onSelectCategory }) {
+    
     return (
         <fieldset className='dashboardfs'>
             <div className='VerificationDashboard'>
@@ -163,7 +164,7 @@ function MostLiked() {
                     thesis.title.toLowerCase().includes(searchTerm) ||
                     (thesis.authors && thesis.authors.toLowerCase().includes(searchTerm)) ||
                     (thesis.keywords && thesis.keywords.toLowerCase().includes(searchTerm))
-                ).slice(0, 4); // Limit to top 4 most recent theses, adjust as needed
+                ).slice(0, 5); // Limit to top 4 most recent theses, adjust as needed
                 setTheses(filteredData);
             })
             .catch(error => {
@@ -198,11 +199,17 @@ function MostLiked() {
 
 const Statistics = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
-
+    const [userData, setUserData] = useState(null);
+    useEffect(() => {
+        const storedUserData = JSON.parse(sessionStorage.getItem('user'));
+        if (storedUserData) {
+            setUserData(storedUserData);
+        }
+    }, []);
     const handleSelectCategory = (category) => {
         setSelectedCategory(category);
     };
-
+   
     return (
         <div className="FullPage">
             <SearchNavbar />
@@ -212,7 +219,7 @@ const Statistics = () => {
             {selectedCategory === 'Most Liked' && <MostLiked />}
             {selectedCategory === 'Most Downloads' && <MostDownloaded />}
             <Footer />
-            <ChatComponent />
+            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
         </div>
     );
 };

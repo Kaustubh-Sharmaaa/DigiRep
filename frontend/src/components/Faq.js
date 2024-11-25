@@ -1,14 +1,25 @@
 /* File written by: Chevva, Meghana, Student ID: 1002114458 */
-import React, { useState } from 'react'; // Importing React and useState hook for managing state
+import React, { useState, useEffect } from 'react'; // Importing React and useState hook for managing state
 import '../css/ContactUs.css'; // Importing custom CSS for styling the Contact Us page
 import Navbar from './NavBar'; // Importing the Navbar component for navigation
 import Footer from './Footer'; // Importing the Footer component
 import '../css/Faq.css'; // Importing custom CSS for styling the FAQ page
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Importing icons for the FAQ accordion
 import { Link } from "react-router-dom"; // Importing Link for navigation
-
+import SearchNavbar from './SearchNavBar';
+import ChatComponent from './ChatComponent';
 const Faq = () => {
     // FAQ data containing questions and answers
+
+    const [userData, setUserData] = useState(null);
+    useEffect(()=>{
+        const storedUserData = JSON.parse(sessionStorage.getItem('user'));
+        console.log("data",storedUserData);
+        if(storedUserData)
+        {
+            setUserData(storedUserData);
+        }
+    },[]);
     const faqData = [
         {
             question: 'What is the Digital Thesis Repository?',
@@ -73,7 +84,7 @@ const Faq = () => {
 
     return (
         <div>
-            <Navbar /> {/* Rendering the Navbar */}
+            {userData ? <SearchNavbar /> : <Navbar />}
             <div className='facenter'> {/* Centering the FAQ section */}
                 <fieldset className='fieldsetA'> {/* Fieldset for styling */}
                     <legend className='legendF'> {/* Legend for the fieldset */}
@@ -105,6 +116,8 @@ const Faq = () => {
             </div>
             <br></br>
             <Footer /> {/* Rendering the Footer */}
+            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
+
             <br />
             <br />
         </div>

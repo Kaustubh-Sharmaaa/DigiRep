@@ -30,6 +30,7 @@ const SubmitThesis = () => {
     const [refthesis, setRefThesis] = useState([]);
     const [advisor, setAdvisor] = useState('');
     const [uploadedFile, setUploadedFile] = useState(null);
+    const [publishedThesis,setpublishedThesis] = useState([]);
 
     // Fetch advisor data from the backend
     useEffect(() => {
@@ -100,7 +101,10 @@ const SubmitThesis = () => {
             alert("Please select at least three requested advisors.");
             return;
         }
-
+        if (reqadvisor.length > 3) {
+            alert("Please select three requested advisors.");
+            return;
+        }
 
         // Prepare the data to be sent in the request
         const formData = {
@@ -279,6 +283,11 @@ const SubmitThesis = () => {
     };
     const handleThesisSelectChange = (selectedOptions) => {
         setRefThesis(selectedOptions ? selectedOptions.map(option => option.value) : []);
+        // fetch('http://localhost:3001/api/searchThesis/getTitle/:', {
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json' },
+        // })
+        //     .then(response => console.log(response.json()))
     };
 
     const handleAdvisorSelectChange = (selectedOptions) => {
@@ -293,7 +302,14 @@ const SubmitThesis = () => {
         link.click();
         document.body.removeChild(link);
     };
-
+    const handleGuidelinesDownload = () => {
+        const link = document.createElement('a');
+        link.href = '/Guidelines.pdf';
+        link.setAttribute('download', 'Guidelines.pdf');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -312,6 +328,9 @@ const SubmitThesis = () => {
                     </legend>
                     <form action="#" className="submitform" id="forms" onSubmit={handleFormSubmit}>
                         <div className="containerB">
+                        <button className="button-template" onClick={handleGuidelinesDownload}>
+                                <FaDownload />  &nbsp; Download Guidelines
+                            </button>
                             <input type="text" className="text-input" id="title" placeholder="Enter Thesis Title here" required />
                             <br />
                             <textarea id="abstract" placeholder="Enter Abstract here"></textarea>

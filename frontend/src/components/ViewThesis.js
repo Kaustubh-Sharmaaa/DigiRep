@@ -6,7 +6,7 @@ import { FaDownload } from "react-icons/fa6";
 import SearchNavbar from './SearchNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-
+import ChatComponent from './ChatComponent';
 const TopThesis = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -27,6 +27,7 @@ const TopThesis = () => {
                     console.error('Expected an array but got:', data);
                     setRelatedTheses([]);
                 }
+                console.log("data:",data);
             } catch (error) {
                 console.error('Error fetching related theses:', error);
             }
@@ -443,7 +444,15 @@ const Thesis = () => (
     </div>
 );
 
-const ViewThesis = () => (
+const ViewThesis = () => {
+    const [userData, setUserData] = useState(null);
+    useEffect(() => {
+        const storedUserData = JSON.parse(sessionStorage.getItem('user'));
+        if (storedUserData) {
+            setUserData(storedUserData);
+        }
+    }, []);
+return(
     <div>
         <SearchNavbar />
         <br></br>
@@ -452,8 +461,9 @@ const ViewThesis = () => (
         </div>
         <br></br>
         <Footer />
+        {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
     </div>
-);
+)};
 
 
 export default ViewThesis;

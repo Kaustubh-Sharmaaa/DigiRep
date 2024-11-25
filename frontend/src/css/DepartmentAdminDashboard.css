@@ -1,6 +1,6 @@
-
-
-
+.inquiry-detail-container{
+    text-align: center;
+}
 
 .department-admin-home {
     color: white;
@@ -316,4 +316,10 @@ main {
 .section-container a:hover {
     color: #81C784;  /* Lighter green on hover */
     text-decoration: underline;
+}
+
+.dashboardmt{
+    color: white;
+    height: max-content;
+    background-color: #131313;
 }

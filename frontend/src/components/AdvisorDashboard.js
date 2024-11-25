@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
-import ChatComponent from "./ChatComponent";
-
+import ChatComponent from './ChatComponent';
 const AdvisorDashboard = () => {
     const navigate = useNavigate();
     const userData = JSON.parse(sessionStorage.getItem('user'));
@@ -69,21 +68,28 @@ const AdvisorDashboard = () => {
                     &nbsp;
                     <div className='buttons'>
 
-                        <button className="button-85" onClick={() => navigate('/pendingRefTheses')}>
+                    <button className="button-85" onClick={() => navigate('/pendingRefTheses')}>
                             View all Theses Pending Reference Acceptance
                         </button>
-                        &nbsp;&nbsp;
+                    &nbsp;&nbsp;
                         <button className="button-85" onClick={() => navigate('/pendingReqTheses')}>
                             View all Theses Pending Review
                         </button>
                         &nbsp;&nbsp;
-                        <button className="button-85" onClick={() => navigate('/pendingRefTheses')}>
+                        <button className="button-85" onClick={() => navigate('/approvedRefTheses')}>
                             View all Theses Approved Reference Acceptance
                         </button>
                         &nbsp;&nbsp;
-                        <button className="button-85" onClick={() => navigate('/pendingRefTheses')}>
+                        <button className="button-85" onClick={() => navigate('/approvedReqTheses')}>
                             View all Theses Approved Review
                         </button>
+                        &nbsp;
+                        &nbsp;
+                        <button className="button-85" onClick={() => navigate('/thesesInquiries')}>
+                            View Theses Inquiries
+                        </button>
+                        &nbsp;
+                        &nbsp;
                         &nbsp;
                         &nbsp;
 
@@ -97,7 +103,7 @@ const AdvisorDashboard = () => {
             <br />
 
             <Footer />
-            <ChatComponent />
+            <ChatComponent/>
         </div>
     );
 }

@@ -46,7 +46,7 @@ const SearchNavbar = () => {
     // Function to handle key down events, specifically for the Enter key
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            navigate(`/search?query=${searchTerm}`); // Navigate to the search results page
+            navigate(`/searchThesis?query=${searchTerm}`); // Navigate to the search results page
         }
     };
 
@@ -81,7 +81,7 @@ const SearchNavbar = () => {
     const handleSelect = (item) => {
         setSearchTerm(""); // Clear input field
         setSuggestions([]); // Clear suggestions
-        navigate(`/searchThesis?query=${encodeURIComponent(searchTerm)}`); // Redirect to new page with item ID
+        navigate(`/viewthesis?query=${item.thesisId}`);
     };
 
     return (
@@ -100,14 +100,15 @@ const SearchNavbar = () => {
                     onKeyDown={handleKeyDown}
                 />
 
-                {loading && <p>Loading...</p>}
-                {error && <p>Error: {error}</p>}
+                
 
                 {searchTerm && suggestions.length > 0 && (
                     <ul>
                         {suggestions.map((item) => (
                             <li key={item.id} onClick={() => handleSelect(item)}>
-                                {item.title} submitted by: {item.studentId} year: {new Date(item.submittedDatetime).getFullYear()}
+                                {item.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                                submitted by: {item.firstName} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                year: {new Date(item.publishDatetime).getFullYear()}
                             </li>
                         ))}
                     </ul>

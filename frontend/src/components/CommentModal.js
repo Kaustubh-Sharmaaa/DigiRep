@@ -11,15 +11,17 @@ const CommentModal = ({ isOpen, onClose, onSubmit, actionType }) => {
         // Confirmation dialog
         const actionMessage = actionType === 'approve' ? 'approve' : 'decline';
         const confirmation = window.confirm(`Are you sure you want to ${actionMessage} this thesis?`);
-
+ 
         if (!confirmation) {
             // If the user cancels, do nothing
             return;
         }
-
-        onSubmit(comment); // Pass the comment to the parent component
-        setComment(''); // Clear the comment field after submission
-        onClose(); // Close the modal
+        else {
+            onSubmit(comment); // Pass the comment to the parent component
+            setComment(''); // Clear the comment field after submission
+            onClose();
+        } // Close the modal
+ 
     };
 
     const handleCancel = () => {

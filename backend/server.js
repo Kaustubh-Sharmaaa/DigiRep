@@ -6,18 +6,6 @@ const session = require('express-session');
 const app = express();
 
 
-const { Server } = require('socket.io');
-const http = require('http');
-
-// Create HTTP server for WebSocket integration
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000", // Your frontend URL
-    methods: ["GET", "POST"],
-  },
-});
-
 
 
 
@@ -99,7 +87,26 @@ app.post('/api/send-otp', (req, res) => {
             to: email,
             subject: 'Your Password Reset OTP',
             text: `Your OTP for resetting your password is: ${otp}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 20px; background-color: #f9f9f9;">
+                    <div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        <h2 style="color: #4CAF50; text-align: center;">Password Reset Request</h2>
+                        <p>Dear User,</p>
+                        <p>You requested to reset your password. Please use the following One-Time Password (OTP) to complete the process:</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <span style="display: inline-block; font-size: 24px; font-weight: bold; color: #4CAF50; background: #f4f4f4; padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd;">
+                                ${otp}
+                            </span>
+                        </div>
+                        <p>Please note that this OTP is valid only for a limited time. If you did not request a password reset, please ignore this email or contact our support team immediately.</p>
+                        <p style="text-align: center; margin-top: 20px;">Thank you,<br/><strong>Digital Thesis Repository System - Group 2</strong></p>
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #888; text-align: center;">This is an automated message.</p>
+                    </div>
+                </div>
+            `,
           };
+
 
           transporter.sendMail(mailOptions, (err) => {
             if (err) {
@@ -120,7 +127,7 @@ app.post('/api/send-otp', (req, res) => {
 
 // Verify OTP and reset password
 app.post('/api/verify-otp', (req, res) => {
-  const { email, otp,newPassword } = req.body;
+  const { email, otp, newPassword } = req.body;
 
   // Validate OTP
   db.query('SELECT * FROM password_resets WHERE email = ? AND otp = ?', [email, otp], (err, result) => {
@@ -207,66 +214,249 @@ app.post('/api/reset-password', (req, res) => {
     });
 });
 
+app.post('/api/answer-inquiry', (req, res) => {
+  const { id, firstName, lastName, email, type, reply } = req.body;
+  const mailOptions = {
+    from: 'digithesisrepo2@gmail.com',
+    to: email,
+    subject: `Reply to your Inquiry - ${id}, Type - ${type}`,
+    text: `Hello ${firstName} ${lastName}, \n\nHere is your resolution: ${reply}\n\nThanks,Digital Thesis Repository System - Group2`,
+    html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 20px; background-color: #f9f9f9;">
+                <div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                    <h2 style="color: #4CAF50; text-align: center;">Digital Thesis Repository System</h2>
+                    <p>Dear <strong>${firstName} ${lastName}</strong>,</p>
+                    <p>We have reviewed your inquiry with the following details:</p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Inquiry ID:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Inquiry Type:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${type}</td>
+                        </tr>
+                    </table>
+                    <p><strong>Resolution:</strong></p>
+                    <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; border-left: 4px solid #4CAF50;">
+                        ${reply}
+                    </div>
+                    <p>We hope this addresses your concern. If you have any further questions, feel free to reach out to us.</p>
+                    <p style="text-align: center; margin-top: 20px;">Thank you,<br/><strong>Digital Thesis Repository System - Group 2</strong></p>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #888; text-align: center;">This is an automated message.</p>
+                </div>
+            </div>
+        `,
+  };
 
-
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  // Handle user joining their room
-  socket.on("join", (userId) => {
-    if (!userId) {
-      console.error("Invalid userId provided for join event");
-      return;
+  transporter.sendMail(mailOptions, (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Error sending email');
     }
-    socket.join(userId);
-    console.log(`User ${userId} joined their room.`);
-  });
+    const query = `
+            UPDATE contact_submissions SET isAnswered='ANSWERED', answer=?
+      WHERE id = ?;
+        `;
 
-  // Handle sending messages
-  socket.on("send_message", (data) => {
-    console.log("Message received:", data); // Log the incoming data
-    const { senderId, receiverId, message } = data;
-
-    // Validate input data
-    if (!senderId || !receiverId || !message.trim()) {
-      console.error("Invalid data received for message:", data);
-      socket.emit("error_message", "Invalid data provided for sending a message.");
-      return;
-    }
-
-    // Save the message to the database
-    db.query(
-      `INSERT INTO messages (senderId, receiverId, message, timestamp, status) VALUES (?, ?, ?, ?, ?)`,
-      [senderId, receiverId, message, new Date(), "SENT"],
-      (err, result) => {
-        if (err) {
-          console.error("Error inserting message into database:", err);
-          socket.emit("error_message", "Error saving message to the database.");
-          return;
-        }
-
-        console.log(`Message saved to database with ID: ${result.insertId}`);
-
-        // Emit the message to the receiver's room in real-time
-        io.to(receiverId).emit("receive_message", {
-          senderId,
-          receiverId,
-          message,
-          timestamp: new Date(),
-        });
-
-        console.log(`Message emitted to receiver ${receiverId}'s room:`, message);
+    db.query(query, [reply, id], (err, result) => {
+      if (err) {
+        return res.json({ error: err.message });
       }
-    );
+    });
+    res.status(200).json({ message: 'Reply Email Sent' });
   });
+});
 
-  // Handle user disconnect
-  socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
+app.get('/api/users', (req, res) => {
+  const excludeUserId = req.query.excludeUserId; // Get the userId to exclude from query parameters
+console.log("idexc:",excludeUserId);
+  // Define the query with the exclusion logic
+  const query = `
+    SELECT 
+      firstname, 
+      lastname, 
+      email, 
+      studentId AS userId 
+    FROM 
+      students 
+    WHERE 
+      isVerified = "APPROVED" AND studentId != ?
+
+    UNION
+
+    SELECT 
+      firstname, 
+      lastname, 
+      email, 
+      advisorId AS userId 
+    FROM 
+      advisors 
+    WHERE 
+      isVerified = "APPROVED" AND advisorId != ?
+
+    UNION
+
+    SELECT 
+      firstname, 
+      lastname, 
+      email, 
+      visitorId AS userId 
+    FROM 
+      visitors 
+    WHERE 
+      visitorId != ?;
+  `;
+
+  // Execute the query with the excludeUserId parameter
+  db.query(query, [excludeUserId, excludeUserId, excludeUserId], (err, results) => {
+    if (err) {
+      console.error('Error retrieving users:', err.message);
+      return res.status(500).json({ error: 'Failed to retrieve users' });
+    }
+
+    // Send the combined results
+    res.status(200).json(results);
+  });
+});
+
+// Route to mark messages as READ
+app.put('/api/messages/read', (req, res) => {
+  const { fromUser, toUser } = req.body;
+
+  // Ensure both fromUser and toUser are provided in the request body
+  if (!fromUser || !toUser) {
+    return res.status(400).json({ message: 'Both fromUser and toUser are required' });
+  }
+
+  // Update readReceipt for the appropriate field based on the direction of the message
+  const query = `
+    UPDATE chat
+    SET 
+      user1readReceipt = CASE 
+        WHEN fromUser = ? AND toUser = ? THEN 'READ' 
+        ELSE user1readReceipt 
+      END,
+      user2readReceipt = CASE 
+        WHEN fromUser = ? AND toUser = ? THEN 'READ' 
+        ELSE user2readReceipt 
+      END
+    WHERE 
+      (fromUser = ? AND toUser = ?) OR 
+      (fromUser = ? AND toUser = ?)
+  `;
+
+  db.query(
+    query, 
+    [fromUser, toUser, toUser, fromUser, fromUser, toUser, toUser, fromUser], 
+    (err, result) => {
+      if (err) {
+        console.error('Error updating messages:', err);
+        return res.status(500).json({ message: 'Failed to mark messages as READ' });
+      }
+
+      // If no rows were affected, no messages were found
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'No messages found to mark as READ' });
+      }
+
+      // Successfully updated messages
+      return res.status(200).json({ message: 'Messages marked as READ' });
+    }
+  );
+});
+
+
+app.post('/api/messages', (req, res) => {
+  const { fromUser, toUser, message } = req.body;
+
+  const query = `
+      INSERT INTO chat (fromUser, toUser, message, user1readReceipt)
+      VALUES (?, ?, ?,'READ')
+  `;
+  
+  db.query(query, [fromUser, toUser, message], (err, result) => {
+      if (err) {
+          console.error('Error inserting message:', err.message);
+          return res.status(500).json({ error: 'Failed to send message' });
+      }
+      res.status(200).json({ success: true, message: 'Message sent successfully' });
+  });
+});
+app.get('/api/unreadMessages', (req, res) => {
+  const { userId } = req.query; // `userId` is the logged-in user's ID
+
+  const query = `
+      SELECT 
+          fromUser, 
+          COUNT(*) AS unreadCount, 
+          MAX(sentAt) AS latestSentAt 
+      FROM chat 
+      WHERE toUser = ? AND user2readReceipt = 'PENDING'
+      GROUP BY fromUser
+      ORDER BY latestSentAt DESC;
+  `;
+
+  db.query(query, [userId], (err, results) => {
+      if (err) {
+          console.error('Error fetching unread messages:', err);
+          res.status(500).json({ error: 'Failed to fetch unread messages' });
+      } else {
+          res.json(results);
+      }
+  });
+});
+app.get('/api/unreadMessagesCount', (req, res) => {
+  const { userId } = req.query; 
+  // Validate input
+  if (!userId) {
+      return res.status(400).json({ error: 'toUser is required' });
+  }
+
+  // SQL query to count unread messages for the user
+  const query = `
+      SELECT COUNT(*) AS unreadCount
+      FROM chat
+      WHERE toUser = ? AND user2readReceipt = 'PENDING';
+  `;
+
+  db.query(query, [userId], (err, results) => {
+      if (err) {
+          console.error('Error fetching unread messages count:', err);
+          return res.status(500).json({ error: 'Failed to fetch unread messages count' });
+      }
+
+      // Send the unread count as JSON response
+      res.json({ unreadCount: results[0].unreadCount });
   });
 });
 
 
+app.get('/api/getmessages', (req, res) => {
+  const { fromUser, toUser } = req.query; // Get the user IDs from the query params
+
+  // Validate input
+  if (!fromUser || !toUser) {
+      return res.status(400).json({ error: 'Both fromUser and toUser are required' });
+  }
+
+  // SQL query to fetch messages between the two users
+  const query = `
+      SELECT * FROM chat
+      WHERE (fromUser = ? AND toUser = ?) OR (fromUser = ? AND toUser = ?)
+      ORDER BY sentAt ASC;
+  `;
+
+  db.query(query, [fromUser, toUser, toUser, fromUser], (err, results) => {
+      if (err) {
+          console.error('Error fetching messages:', err);
+          return res.status(500).json({ error: 'Failed to fetch messages' });
+      }
+
+      res.json(results); // Send the messages as JSON response
+  });
+});
 
 // Helper function to generate prefixed ID
 function generatePrefixedId(prefix, id) {
@@ -527,11 +717,22 @@ app.get('/api/theses-approved/:userid', (req, res) => {
   const { userid } = req.params;
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
-      SELECT * from thesis WHERE studentId = ? AND (refAdvisorAcceptance = 'APPROVED'
-        AND req1ReviewStatus = 'APPROVED'
-        AND req2ReviewStatus = 'APPROVED'
-        AND req3ReviewStatus = 'APPROVED'
-        AND publishStatus = 'PENDING');
+  SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.studentId = ?
+  AND t.refAdvisorAcceptance = 'APPROVED'
+      AND t.req1ReviewStatus = 'APPROVED'
+      AND t.req2ReviewStatus = 'APPROVED'
+      AND t.req3ReviewStatus = 'APPROVED'
+      AND t.publishStatus = 'PENDING'
+  ;
   `;
 
   db.query(query, [userid], (err, results) => {
@@ -546,15 +747,22 @@ app.get('/api/theses-declined/:userid', (req, res) => {
   const { userid } = req.params;
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
-      SELECT * 
-FROM thesis 
-WHERE studentId = ?
+  SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.studentId = ?
   AND (
-        refAdvisorAcceptance = 'REJECTED'
-        OR req1ReviewStatus = 'REJECTED'
-        OR req2ReviewStatus = 'REJECTED'
-        OR req3ReviewStatus = 'REJECTED'
-      );
+      t.refAdvisorAcceptance = 'REJECTED'
+      OR t.req1ReviewStatus = 'REJECTED'
+      OR t.req2ReviewStatus = 'REJECTED'
+      OR t.req3ReviewStatus = 'REJECTED'
+  );
   `;
 
   db.query(query, [userid], (err, results) => {
@@ -569,15 +777,22 @@ app.get('/api/theses-pending/:userid', (req, res) => {
   const { userid } = req.params;
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
-      SELECT * 
-FROM thesis 
-WHERE studentId = ?
+  SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.studentId = ?
   AND (
-        refAdvisorAcceptance = 'PENDING'
-        OR req1ReviewStatus = 'PENDING'
-        OR req2ReviewStatus = 'PENDING'
-        OR req3ReviewStatus = 'PENDING'
-      );
+      t.refAdvisorAcceptance = 'PENDING'
+      OR t.req1ReviewStatus = 'PENDING'
+      OR t.req2ReviewStatus = 'PENDING'
+      OR t.req3ReviewStatus = 'PENDING'
+  );
   `;
 
   db.query(query, [userid], (err, results) => {
@@ -592,10 +807,17 @@ app.get('/api/theses-published/:userid', (req, res) => {
   const { userid } = req.params;
   // SQL query to get users whose status is "pending" or "not verified"
   const query = `
-      SELECT * 
-FROM thesis 
-WHERE studentId = ?
-  AND publishStatus = 'APPROVED';
+  SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.studentId = ?
+  AND t.publishStatus = 'APPROVED' ;
   `;
 
   db.query(query, [userid], (err, results) => {
@@ -1092,6 +1314,35 @@ app.post('/api/pending-ref-theses', (req, res) => {
     res.json(results); // Send the user data as a JSON response
   });
 });
+// app.post('/api/pending-req-theses', (req, res) => {
+//   const { advisorId } = req.body;
+
+//   if (!advisorId) {
+//     return res.status(400).json({ error: 'Advisor ID is required' });
+//   }
+
+//   // MySQL query to find theses with the advisorId in any of the specified columns
+//   const query = `
+//       SELECT *
+//       FROM thesis
+//       WHERE req1ReviewAdvisorId = ? OR req2ReviewAdvisorId = ? OR req3ReviewAdvisorId = ?
+//   `;
+
+//   db.query(query, [advisorId, advisorId, advisorId], (err, results) => {
+//     if (err) {
+//       console.error("Error retrieving theses:", err);
+//       return res.status(500).json({ error: 'An error occurred while retrieving theses' });
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).json({ message: 'No theses found for the specified advisor' });
+//     }
+
+//     // Send the results back to the client
+//     res.status(200).json(results);
+//   });
+// });
+
 app.post('/api/pending-req-theses', (req, res) => {
   const { advisorId } = req.body;
 
@@ -1103,7 +1354,11 @@ app.post('/api/pending-req-theses', (req, res) => {
   const query = `
       SELECT *
       FROM thesis
-      WHERE req1ReviewAdvisorId = ? OR req2ReviewAdvisorId = ? OR req3ReviewAdvisorId = ?
+      WHERE
+        ((req1ReviewAdvisorId = ? AND req1ReviewStatus = 'PENDING') OR
+        (req2ReviewAdvisorId = ? AND req2ReviewStatus = 'PENDING') OR
+        (req3ReviewAdvisorId = ? AND req3ReviewStatus = 'PENDING'))
+        AND refAdvisorAcceptance = 'APPROVED';
   `;
 
   db.query(query, [advisorId, advisorId, advisorId], (err, results) => {
@@ -1546,6 +1801,55 @@ app.post('/api/thesis-reference-decline', (req, res) => {
   });
 });
 
+app.post('/api/approved-ref-theses', (req, res) => {
+  const { advisorId } = req.body;
+  const query = `
+     SELECT *
+        FROM thesis
+        WHERE refAdvisorAcceptance = 'APPROVED'
+        AND refAdvisorId =?;
+ 
+  `;
+
+  db.query(query, [advisorId], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
+
+app.post('/api/approved-req-theses', (req, res) => {
+  const { advisorId } = req.body;
+
+  if (!advisorId) {
+    return res.status(400).json({ error: 'Advisor ID is required' });
+  }
+
+  const query = `
+      SELECT *
+      FROM thesis
+      WHERE
+        ((req1ReviewAdvisorId = ? AND req1ReviewStatus = 'APPROVED') OR
+        (req2ReviewAdvisorId = ? AND req2ReviewStatus = 'APPROVED') OR
+        (req3ReviewAdvisorId = ? AND req3ReviewStatus = 'APPROVED'))
+        AND refAdvisorAcceptance = 'APPROVED';
+  `;
+
+  db.query(query, [advisorId, advisorId, advisorId], (err, results) => {
+    if (err) {
+      console.error("Error retrieving theses:", err);
+      return res.status(500).json({ error: 'An error occurred while retrieving theses' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No theses found for the specified advisor' });
+    }
+
+    // Send the results back to the client
+    res.status(200).json(results);
+  });
+});
 
 app.get('/api/searchThesis/:searchTerm', (req, res) => {
   const { searchTerm } = req.params;
@@ -1556,7 +1860,11 @@ app.get('/api/searchThesis/:searchTerm', (req, res) => {
 
   const likeSearchTerm = `%${searchTerm}%`;
 
-  const query = `SELECT * FROM thesis where title LIKE ? OR submittedDateTime LIKE ? OR abstract LIKE ? OR thesisKeywords LIKE ?`;
+  const query = `SELECT t.*, s.firstName,s.lastName
+  FROM
+    thesis t
+  INNER JOIN
+    students s ON t.studentId = s.studentId where t.publishStatus='APPROVED' AND (t.title LIKE ? OR t.publishDatetime LIKE ? OR t.abstract LIKE ? OR t.thesisKeywords LIKE ?)`;
 
   db.query(query, [likeSearchTerm, likeSearchTerm, likeSearchTerm, likeSearchTerm], (err, results) => {
     if (err) {
@@ -1576,7 +1884,12 @@ app.get('/api/searchThesis/byTitle/:topic', (req, res) => {
   }
 
 
-  const query = `SELECT * FROM thesis where title = ? `;
+  const query = `SELECT t.*, s.firstName,s.lastName
+  FROM
+    thesis t
+  INNER JOIN
+    students s ON t.studentId = s.studentId where t.publishStatus='APPROVED' AND t.title = ? `;
+  // const query = `SELECT * FROM thesis where publishStatus='APPROVED' AND title = ? `;
 
   db.query(query, [topic], (err, results) => {
     if (err) {
@@ -1591,7 +1904,7 @@ app.get('/api/searchThesis/byTitle/:topic', (req, res) => {
 
 app.get('/api/searchThesis/getTitle/:', (req, res) => {
 
-  const query = `SELECT distinct title FROM thesis`;
+  const query = `SELECT distinct title FROM thesis where publishStatus='APPROVED'`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1611,7 +1924,9 @@ app.get('/api/searchThesis/byAuthor/:author', (req, res) => {
   }
 
 
-  const query = `SELECT * FROM thesis where studentId = ? `;
+  const query = `SELECT t.*, s.firstName,s.lastName FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.publishStatus = 'APPROVED' AND s.firstName = ?; `;
+
+  // const query = `SELECT t.* FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.publishStatus = 'APPROVED' AND s.firstName = ?; `;
 
   db.query(query, [author], (err, results) => {
     if (err) {
@@ -1626,7 +1941,9 @@ app.get('/api/searchThesis/byAuthor/:author', (req, res) => {
 
 app.get('/api/searchThesis/getAuthor/:', (req, res) => {
 
-  const query = `SELECT distinct studentId FROM thesis `;
+  // const query = `SELECT distinct studentId FROM thesis `;
+  const query = `SELECT distinct s.firstName, s.studentID FROM students s JOIN thesis t ON s.studentID = t.studentId where publishStatus='APPROVED'`;
+
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1646,8 +1963,17 @@ app.get('/api/searchThesis/byYear/:year', (req, res) => {
     return res.status(400).json({ error: 'Search term is required' });
   }
 
+  const query = ` SELECT t.*, s.firstName,s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId where t.publishStatus='APPROVED' AND YEAR(t.publishDatetime) = ? `;
 
-  const query = `SELECT * FROM thesis where YEAR(submittedDatetime) = ? `;
+
+
+
+
+  // const query = ` SELECT * FROM thesis where publishStatus='APPROVED' AND YEAR(publishDatetime) = ? `;
 
   db.query(query, [year], (err, results) => {
     if (err) {
@@ -1661,7 +1987,7 @@ app.get('/api/searchThesis/byYear/:year', (req, res) => {
 
 app.get('/api/searchThesis/getYear/:', (req, res) => {
 
-  const query = `SELECT distinct YEAR(submittedDatetime) as year FROM thesis `;
+  const query = `SELECT distinct YEAR(publishDatetime) as year FROM thesis where publishStatus='APPROVED'`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1682,7 +2008,7 @@ app.get('/api/searchThesis/byKeyword/:thesisKeyword', (req, res) => {
   }
 
   const jsonFormattedKeyword = `"${thesisKeyword}"`;
-  const query = `SELECT * FROM thesis WHERE JSON_CONTAINS(thesisKeywords, ?) `;
+  const query = `SELECT t.*, s.firstName,s.lastName FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE JSON_CONTAINS(t.thesisKeywords, ?) AND t.publishStatus='APPROVED'`;
 
   db.query(query, [jsonFormattedKeyword], (err, results) => {
     if (err) {
@@ -1700,7 +2026,7 @@ app.get('/api/searchThesis/getKeywords/:', (req, res) => {
   const query = `SELECT DISTINCT keywords
                   FROM thesis, 
                   JSON_TABLE(thesisKeywords, '$[*]' COLUMNS(keywords VARCHAR(255) PATH '$')) AS jt
-                 WHERE keywords IS NOT NULL AND keywords != '';`
+                 WHERE keywords IS NOT NULL AND keywords != '' AND publishStatus='APPROVED';`
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1749,7 +2075,20 @@ app.get('/api/get-comments/:thesisId', (req, res) => {
 
 
 app.get('/api/gettopthesisdetails', (req, res) => {
-  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy, t.publishDatetime as uploadDate FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.likesCount desc;";
+
+  const query = `SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.publishStatus = 'APPROVED'
+ORDER BY
+  t.likesCount DESC
+LIMIT 5;`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1760,7 +2099,19 @@ app.get('/api/gettopthesisdetails', (req, res) => {
 });
 
 app.get('/api/gettopdownloadeddetails', (req, res) => {
-  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy, t.publishDatetime as uploadDate FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.downloadsCount desc where publishStatus = 'APPROVED';";
+  const query = `SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.publishStatus = 'APPROVED'
+ORDER BY
+  t.downloadsCount DESC
+LIMIT 5;`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1770,7 +2121,21 @@ app.get('/api/gettopdownloadeddetails', (req, res) => {
   })
 });
 app.get('/api/getmostrecentdetails', (req, res) => {
-  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId,t.publishDatetime as uploadDate, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors , CONCAT(s.firstName, ' ', s.lastName) AS publishedBy FROM thesis t JOIN students s ON t.studentId = s.studentID ORDER BY t.publishDatetime desc where publishStatus = 'APPROVED';";
+  const query = `
+  SELECT
+    t.*,
+    s.firstName,
+    s.lastName
+FROM
+    thesis t
+INNER JOIN
+    students s ON t.studentId = s.studentId
+WHERE
+    t.publishStatus = 'APPROVED'
+ORDER BY
+    t.publishDateTime DESC
+LIMIT 5;
+`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -1780,18 +2145,31 @@ app.get('/api/getmostrecentdetails', (req, res) => {
   })
 });
 
-// POST endpoint for contact form submissions
 app.post('/api/contact', (req, res) => {
-  const { firstName, lastName, email, inquiryType, thesisId, message } = req.body;
+  const { firstName, lastName, email, inquiryType, thesisId, briefIssue, message } = req.body;
 
-  // Insert the contact form data into the database
+  const allowedInquiryTypes = ['thesis', 'technical', 'other'];
+  if (!allowedInquiryTypes.includes(inquiryType)) {
+    return res.status(400).json({ message: 'Invalid inquiry type' });
+  }
+
   const query = `
       INSERT INTO contact_submissions
-      (first_name, last_name, email, inquiry_type, thesis_id, message)
-      VALUES (?, ?, ?, ?, ?, ?);
+      (first_name, last_name, email, inquiry_type, thesis_id, brief_issue, message)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
   `;
 
-  db.query(query, [firstName, lastName, email, inquiryType, thesisId || null, message], (error, results) => {
+  const queryParams = [
+    firstName,
+    lastName,
+    email,
+    inquiryType,
+    inquiryType === 'thesis' ? thesisId : null,
+    inquiryType === 'other' ? briefIssue : null,
+    message,
+  ];
+
+  db.query(query, queryParams, (error, results) => {
     if (error) {
       console.error('Error inserting contact form data:', error);
       return res.status(500).json({ message: 'Error saving contact form data', error: error.message });
@@ -1799,7 +2177,44 @@ app.post('/api/contact', (req, res) => {
     res.json({ message: 'Contact form submitted successfully', id: results.insertId });
   });
 });
+app.get('/api/theses-inquiries-pending', (req, res) => {
 
+
+  const query = "SELECT * from contact_submissions where inquiry_type='thesis' and isAnswered='PENDING'";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/theses-inquiries-answered', (req, res) => {
+
+
+  const query = "SELECT * from contact_submissions where inquiry_type='thesis' and isAnswered='ANSWERED'";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/inquirydetail/:id', (req, res) => {
+
+  id = req.params.id;
+  const query = "SELECT * from contact_submissions where inquiry_type='thesis' and isAnswered='PENDING' and id=?";
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
 
 app.get('/api/getauthorthesis/:authorid', (req, res) => {
   const authorId = req.params.authorid;
@@ -1845,7 +2260,20 @@ app.get('/api/view-thesis/:id', (req, res) => {
 });
 
 app.get('/api/gettopthesis', (req, res) => {
-  const query = "SELECT thesisId, title from thesis order by likesCount desc where publishStatus = 'APPROVED'";
+  const query = `
+  SELECT
+  t.*,
+  s.firstName,
+  s.lastName
+FROM
+  thesis t
+INNER JOIN
+  students s ON t.studentId = s.studentId
+WHERE
+  t.publishStatus = 'APPROVED'
+ORDER BY
+  t.likesCount DESC
+LIMIT 5;`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -2004,6 +2432,7 @@ app.get('/api/chat/history', (req, res) => {
   });
 });
 
+
 // Send a new message
 app.post('/api/chat/send', async (req, res) => {
 
@@ -2026,6 +2455,20 @@ app.post('/api/chat/send', async (req, res) => {
 });
 
 
+app.get('/api/published-theses', (req, res) => {
+  const query = `
+     SELECT *
+     FROM thesis
+     WHERE publishStatus = 'APPROVED';
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.json({ error: err.message });
+    }
+    res.json(results); // Send the user data as a JSON response
+  });
+});
 
 
 

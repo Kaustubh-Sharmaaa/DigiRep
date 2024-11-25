@@ -4,17 +4,12 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
 import '../css/PendingRefTheses.css';
-import CommentModal from './CommentModal';
 import ChatComponent from './ChatComponent';
-const PendingRefTheses = () => {
+const ApprovedReqTheses = () => {
     const navigate = useNavigate();
     const userData = JSON.parse(sessionStorage.getItem('user'));
     const advisorId = userData ? userData.advisorID : null;
-    const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
-    const [selectedThesisId, setSelectedThesisId] = useState(null); // Store selected thesis ID
-    const [selectedStudentId, setSelectedStudentId] = useState(null); // Store selected student ID
-    const [actionType, setActionType] = useState(''); // Store action type (approve or decline)
-    const [thesisRefPending, setThesisRefPending] = useState([]);
+    const [thesisReqApproved, setThesisReqApproved] = useState([]);
 
     const handleDownload = (id) => {
         fetch(`http://localhost:3001/api/download/${id}`, {
@@ -40,7 +35,7 @@ const PendingRefTheses = () => {
     };
 
     const handleView = (id) => {
-        fetch(`http://localhost:3001/api/viewfile/${id}`, {
+        fetch(`http://localhost:3001/api/download/${id}`, {
             method: 'GET',
         })
             .then(response => {
@@ -59,15 +54,15 @@ const PendingRefTheses = () => {
             });
     };
     const fetchData = () => {
-        fetch('http://localhost:3001/api/pending-ref-theses', {
+        fetch('http://localhost:3001/api/approved-req-theses', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ advisorId }),
         })
             .then(response => response.json())
-            .then(data => Array.isArray(data) ? setThesisRefPending(data) : setThesisRefPending([]))
+            .then(data => Array.isArray(data) ? setThesisReqApproved(data) : setThesisReqApproved([]))
             .catch(error => {
-                console.error("Error getting referenced thesis:", error);
+                console.error("Error getting reviewed thesis:", error);
             });
 
 
@@ -88,70 +83,6 @@ const PendingRefTheses = () => {
         fetchData();
     }, []);
 
-    const handleApprove = (thesisId, studentId) => {
-        setSelectedThesisId(thesisId);
-        setSelectedStudentId(studentId);
-        setActionType('approve');
-        setIsModalOpen(true);
-    };
-
-    const handleDecline = (thesisId, studentId) => {
-        setSelectedThesisId(thesisId);
-        setSelectedStudentId(studentId);
-        setActionType('decline');
-        setIsModalOpen(true);
-    };
-
-    const handleModalSubmit = (comment) => {
-        const date = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format: YYYY-MM-DD HH:MM:SS
-
-        const thesisReference = {
-            studentId: selectedStudentId,
-            thesisId: selectedThesisId,
-            advisorId: advisorId,
-            date: date,
-            comment: comment,
-        };
-
-
-        //send notification
-        const userData = JSON.parse(sessionStorage.getItem('user'));
-        fetch(`http://localhost:3001/api/sendNotifications`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: thesisReference.studentId,
-                message: `${userData.firstName} ${userData.lastName} has ${actionType} thesis ${thesisReference.thesisId}`
-            }),
-        });
-
-
-        const apiEndpoint = actionType === 'approve' ? '/api/thesis-reference-acceptance' : '/api/thesis-reference-decline';
-
-        fetch(`http://localhost:3001${apiEndpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(thesisReference),
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                setThesisRefPending(prevTheses => prevTheses.filter(thesis => thesis.thesisId !== selectedThesisId));
-            })
-            .catch(error => {
-                alert('Error: ' + (error.message || 'An unexpected error occurred.'));
-            });
-
-        // Clear the selected IDs and close the modal
-        setSelectedThesisId(null);
-        setSelectedStudentId(null);
-        setIsModalOpen(false);
-        setActionType('');
-    };
-
-
 
 
     return (
@@ -161,10 +92,10 @@ const PendingRefTheses = () => {
 
             <fieldset className='dashboardfs'>
                 <div className='VerificationDashboard'>
-                    <h2>Thesis Pending Reference Verification</h2>
+                    <h2>Thesis Approved Review Verification</h2>
                     <div className='PendingRefTheses'>
-                        {Array.isArray(thesisRefPending) && thesisRefPending.length > 0 ? (
-                            thesisRefPending.map(thesis => (
+                        {Array.isArray(thesisReqApproved) && thesisReqApproved.length > 0 ? (
+                            thesisReqApproved.map(thesis => (
                                 <div key={thesis.id} className="thesis-card">
                                     <div>
                                         &nbsp;
@@ -181,10 +112,10 @@ const PendingRefTheses = () => {
                                     </div>
                                     <div >
 
-                                        &nbsp;
+                                        {/* &nbsp;
                                         <button onClick={() => handleApprove(thesis.thesisId, thesis.studentId)}>Approve</button>
                                         &nbsp;
-                                        <button onClick={() => handleDecline(thesis.thesisId, thesis.studentId)}>Decline</button>
+                                        <button onClick={() => handleDecline(thesis.thesisId, thesis.studentId)}>Decline</button> */}
                                     </div>
 
                                 </div>
@@ -195,21 +126,16 @@ const PendingRefTheses = () => {
                     </div>
                     <br /><br /><br />
 
-                    
+
                 </div>
             </fieldset>
             <br />
 
             <Footer />
-            <CommentModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleModalSubmit}
-                actionType={actionType} // Pass the action type to the modal
-            />
-            <ChatComponent/>
+            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
+
         </div>
     );
 }
 
-export default PendingRefTheses;
+export default ApprovedReqTheses;

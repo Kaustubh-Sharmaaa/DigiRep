@@ -4,7 +4,8 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import CommentModal from './CommentModal';
 import '../css/DepartmentAdminDashboard.css';
-import '../css/PendingRefTheses.css'
+import '../css/PendingRefTheses.css';
+import ChatComponent from './ChatComponent';
 const PendingReqTheses = () => {
     const navigate = useNavigate();
     const userData = JSON.parse(sessionStorage.getItem('user'));
@@ -136,6 +137,7 @@ const PendingReqTheses = () => {
         .then(response => response.json())
         .then(data => {
             alert(data.message);
+            setThesisReqPending(prevTheses => prevTheses.filter(thesis => thesis.thesisId !== selectedThesisId));
         })
         .catch(error => {
             alert('Error: ' + (error.message || 'An unexpected error occurred.'));
@@ -204,6 +206,7 @@ const PendingReqTheses = () => {
                 onSubmit={handleModalSubmit} 
                 actionType={actionType} // Pass the action type to the modal
             />
+            <ChatComponent/>
         </div>
     );
 }

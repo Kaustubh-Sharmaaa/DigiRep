@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
-
 const AdvisorsApproved = () => {
 
     const navigate = useNavigate();

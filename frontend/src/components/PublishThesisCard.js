@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../css/Statistics.css';
 import { useNavigate } from 'react-router-dom';
-
-function PublishThesisCard({ thesis, isTrending }) {
-    const { thesisId, title, authors, studentId, submittedDatetime, abstract } = thesis;
+ 
+function PublishThesisCard({ thesis, isTrending, onActionComplete }) {
+    const { thesisId, title, authors, firstName, lastName, submittedDatetime, abstract, publishedDateTime } = thesis;
     const navigate = useNavigate();
     const [showAbstract, setShowAbstract] = useState(false);
-
+   console.log("thesis",thesis);
     const handleViewClick = () => {
         navigate(`/viewthesis?query=${thesisId}`);
     };
-
+ 
     const toggleAbstract = () => {
         setShowAbstract(!showAbstract);
     };
@@ -25,8 +25,12 @@ function PublishThesisCard({ thesis, isTrending }) {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.message == "thesis published successfully") {
+                        if (onActionComplete) {
+                            onActionComplete();
+                        }
                         alert("Thesis published successfully!");
+                       
                        
                     } else {
                         alert("Failed to publish thesis. Please try again.");
@@ -38,9 +42,9 @@ function PublishThesisCard({ thesis, isTrending }) {
                 });
         }
     };
-
+ 
     const titleRef = useRef(null);
-
+ 
     useEffect(() => {
         if (titleRef.current) {
             const currentFontSize = window.getComputedStyle(titleRef.current, null).getPropertyValue('font-size');
@@ -51,7 +55,7 @@ function PublishThesisCard({ thesis, isTrending }) {
             }
         }
     }, [title]);
-
+ 
     return (
         <div className="thesis-card">
             <div ref={titleRef} className="thesis-card-title"><strong>{title}</strong></div>
@@ -62,8 +66,10 @@ function PublishThesisCard({ thesis, isTrending }) {
                 </div>
             ) : (
                 <div>
-                    <p>{isTrending ? `Submitted by: ${studentId}` : `Authors: ${authors}`}</p>
-                    
+                    <p>{isTrending
+                            ? `Submitted by: ${firstName || "Unknown"} ${lastName || "Unknown"}`
+                            : `Authors: ${authors}`}</p>
+                   
                     <p><strong>Submitted Date: </strong>{submittedDatetime}</p>
                 </div>
             )}

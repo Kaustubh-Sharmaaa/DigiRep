@@ -176,18 +176,30 @@ CREATE TABLE IF NOT EXISTS ThesisReviewDecline (
 
   // Kaustubh's Additions:
   const createContactUsQuery = `
-CREATE TABLE IF NOT EXISTS contact_submissions (
+CREATE TABLE IF NOT EXISTS contact_submissions  (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    inquiry_type VARCHAR(255) NOT NULL,
-    thesis_id VARCHAR(255),
+    inquiry_type ENUM('thesis', 'technical', 'other') NOT NULL,
+    thesis_id VARCHAR(50) DEFAULT NULL,
+    brief_issue VARCHAR(255) DEFAULT NULL,
     message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    isAnswered ENUM('PENDING', 'ANSWERED') DEFAULT 'PENDING',
+    answer TEXT DEFAULT NULL
 );
-`
 
+`
+  const createChatTableQuery = `CREATE TABLE IF NOT EXISTS chat (
+    id INT AUTO_INCREMENT PRIMARY KEY,   
+    fromUser VARCHAR(255) NOT NULL,      
+    toUser VARCHAR(255) NOT NULL,        
+    message VARCHAR(1000) NOT NULL,      
+    sentAt DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    user1readReceipt ENUM('PENDING', 'READ') DEFAULT 'PENDING',
+    user2readReceipt ENUM('PENDING', 'READ') DEFAULT 'PENDING'
+);`
   const createLikedTableQuery = `CREATE TABLE IF NOT EXISTS userhasliked (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId VARCHAR(255) NOT NULL,
@@ -205,7 +217,13 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
 
     FOREIGN KEY (thesisId) REFERENCES thesis(thesisId)
   );`
-
+  connection.query(createChatTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating chat table:', err.message);
+    } else {
+      console.log('Chat table ready');
+    }
+  });
   connection.query(createLikedTableQuery, (err, result) => {
     if (err) {
       console.error('Error creating users table:', err.message);
