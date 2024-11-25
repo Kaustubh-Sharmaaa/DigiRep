@@ -271,7 +271,7 @@ app.post('/api/answer-inquiry', (req, res) => {
 
 app.get('/api/users', (req, res) => {
   const excludeUserId = req.query.excludeUserId; // Get the userId to exclude from query parameters
-console.log("idexc:",excludeUserId);
+  console.log("idexc:", excludeUserId);
   // Define the query with the exclusion logic
   const query = `
     SELECT 
@@ -348,8 +348,8 @@ app.put('/api/messages/read', (req, res) => {
   `;
 
   db.query(
-    query, 
-    [fromUser, toUser, toUser, fromUser, fromUser, toUser, toUser, fromUser], 
+    query,
+    [fromUser, toUser, toUser, fromUser, fromUser, toUser, toUser, fromUser],
     (err, result) => {
       if (err) {
         console.error('Error updating messages:', err);
@@ -375,13 +375,13 @@ app.post('/api/messages', (req, res) => {
       INSERT INTO chat (fromUser, toUser, message, user1readReceipt)
       VALUES (?, ?, ?,'READ')
   `;
-  
+
   db.query(query, [fromUser, toUser, message], (err, result) => {
-      if (err) {
-          console.error('Error inserting message:', err.message);
-          return res.status(500).json({ error: 'Failed to send message' });
-      }
-      res.status(200).json({ success: true, message: 'Message sent successfully' });
+    if (err) {
+      console.error('Error inserting message:', err.message);
+      return res.status(500).json({ error: 'Failed to send message' });
+    }
+    res.status(200).json({ success: true, message: 'Message sent successfully' });
   });
 });
 app.get('/api/unreadMessages', (req, res) => {
@@ -399,19 +399,19 @@ app.get('/api/unreadMessages', (req, res) => {
   `;
 
   db.query(query, [userId], (err, results) => {
-      if (err) {
-          console.error('Error fetching unread messages:', err);
-          res.status(500).json({ error: 'Failed to fetch unread messages' });
-      } else {
-          res.json(results);
-      }
+    if (err) {
+      console.error('Error fetching unread messages:', err);
+      res.status(500).json({ error: 'Failed to fetch unread messages' });
+    } else {
+      res.json(results);
+    }
   });
 });
 app.get('/api/unreadMessagesCount', (req, res) => {
-  const { userId } = req.query; 
+  const { userId } = req.query;
   // Validate input
   if (!userId) {
-      return res.status(400).json({ error: 'toUser is required' });
+    return res.status(400).json({ error: 'toUser is required' });
   }
 
   // SQL query to count unread messages for the user
@@ -422,13 +422,13 @@ app.get('/api/unreadMessagesCount', (req, res) => {
   `;
 
   db.query(query, [userId], (err, results) => {
-      if (err) {
-          console.error('Error fetching unread messages count:', err);
-          return res.status(500).json({ error: 'Failed to fetch unread messages count' });
-      }
+    if (err) {
+      console.error('Error fetching unread messages count:', err);
+      return res.status(500).json({ error: 'Failed to fetch unread messages count' });
+    }
 
-      // Send the unread count as JSON response
-      res.json({ unreadCount: results[0].unreadCount });
+    // Send the unread count as JSON response
+    res.json({ unreadCount: results[0].unreadCount });
   });
 });
 
@@ -438,7 +438,7 @@ app.get('/api/getmessages', (req, res) => {
 
   // Validate input
   if (!fromUser || !toUser) {
-      return res.status(400).json({ error: 'Both fromUser and toUser are required' });
+    return res.status(400).json({ error: 'Both fromUser and toUser are required' });
   }
 
   // SQL query to fetch messages between the two users
@@ -449,12 +449,12 @@ app.get('/api/getmessages', (req, res) => {
   `;
 
   db.query(query, [fromUser, toUser, toUser, fromUser], (err, results) => {
-      if (err) {
-          console.error('Error fetching messages:', err);
-          return res.status(500).json({ error: 'Failed to fetch messages' });
-      }
+    if (err) {
+      console.error('Error fetching messages:', err);
+      return res.status(500).json({ error: 'Failed to fetch messages' });
+    }
 
-      res.json(results); // Send the messages as JSON response
+    res.json(results); // Send the messages as JSON response
   });
 });
 
@@ -2041,6 +2041,24 @@ app.get('/api/searchThesis/getKeywords/:', (req, res) => {
 
 
 //Kaustubh's Additions:
+
+app.delete('/api/delete-comment/:id', (req, res) => {
+  const { id } = req.params; // Get the ID of the comment to delete
+  const deleteQuery = "DELETE FROM comments WHERE id = ?";
+
+  db.query(deleteQuery, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "No comment found with the provided ID." });
+    }
+    // Successfully deleted the comment
+    res.status(200).json({ message: "Comment deleted successfully." });
+  });
+});
+
+
 app.post('/api/post-comment', (req, res) => {
   const { userId, name, thesisId, commenttext } = req.body;
   const query = "INSERT INTO comments (userId, name, thesisId, commenttext) VALUES (?, ?, ?, ?)";
@@ -2240,7 +2258,26 @@ app.get('/api/get-references/:ids', (req, res) => {
   });
 });
 
+app.get('/api/getadvisor/:advisorID', (req, res) => {
+  const { advisorID } = req.params;
+  const query = `
+      SELECT id, advisorID, firstName, lastName, email, role, education, isVerified
+      FROM advisors
+      WHERE advisorID = ?
+  `;
 
+  db.query(query, [advisorID], (err, result) => {
+    if (err) {
+      console.error('Error fetching advisor data:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (result.length > 0) {
+      res.json(result[0]); // Send the first result back
+    } else {
+      res.status(404).json({ message: 'Advisor not found' });
+    }
+  });
+});
 
 app.get('/api/view-thesis/:id', (req, res) => {
   id = req.params.id;
@@ -2249,7 +2286,7 @@ app.get('/api/view-thesis/:id', (req, res) => {
   }
   id = id.slice(1);
   console.log(id);
-  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.refThesisID, t.thesisKeywords, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.id = ?;";
+  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.req1ReviewAdvisorId as adv1, t.req2ReviewAdvisorId as adv2, t.req3ReviewAdvisorId as adv3, t.refThesisID, t.thesisKeywords, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.id = ?;";
 
   db.query(query, [id], (err, results) => {
     if (err) {

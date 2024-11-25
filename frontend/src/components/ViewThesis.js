@@ -3,6 +3,7 @@ import '../css/ViewThesis.css';
 import Footer from './Footer';
 import { FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 import { FaDownload } from "react-icons/fa6";
+import { FaTrashAlt } from "react-icons/fa";
 import SearchNavbar from './SearchNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -27,7 +28,7 @@ const TopThesis = () => {
                     console.error('Expected an array but got:', data);
                     setRelatedTheses([]);
                 }
-                console.log("data:",data);
+                console.log("data:", data);
             } catch (error) {
                 console.error('Error fetching related theses:', error);
             }
@@ -149,11 +150,11 @@ const Sidebar = () => (
 function extractUserId(user) {
     switch (user.role) {
         case 'Advisor':
-            return user.advisorID;
+            return (user.advisorID);
         case 'Student':
-            return user.studentID;
+            return (user.studentID);
         case 'DepartmentAdmin':
-            return user.departmentAdminID;
+            return (user.departmentAdminID);
         default:
             return null;
     }
@@ -167,6 +168,7 @@ function ThesisContent() {
     const [tab, setTab] = useState('Abstract');
     const [liked, setLiked] = useState(false); // To track whether the thesis has been liked
     const [references, setReferences] = useState([]);
+    const [advisors, setAdvisors] = useState([]);
 
 
     const userData = JSON.parse(sessionStorage.getItem('user'));
@@ -183,6 +185,8 @@ function ThesisContent() {
                 data.thesisKeywords = data.thesisKeywords.join(', ');
             }
             setThesis(data);
+            console.log("Thesis Data : ", data)
+            fetchAdvisors([data.adv1, data.adv2, data.adv3]);
 
             // Fetch whether the user has liked this thesis
             const likeResponse = await fetch(`http://localhost:3001/api/check-like/${id}/${userId}`);
@@ -240,6 +244,20 @@ function ThesisContent() {
         }
     }
 
+    const fetchAdvisors = async (advisorIds) => {
+        try {
+            console.log("Advisor id = ", advisorIds)
+            const uniqueIds = [...new Set(advisorIds)]; // Remove duplicates
+            const promises = uniqueIds.map(id =>
+                fetch(`http://localhost:3001/api/getadvisor/${id}`).then(res => res.json())
+            );
+            const advisorsData = await Promise.all(promises);
+            setAdvisors(advisorsData);
+        } catch (error) {
+            console.error('Error fetching advisors:', error);
+        }
+    };
+
     const handleDownload = (id) => {
         fetch(`http://localhost:3001/api/download/${id}`)
             .then(response => {
@@ -284,6 +302,9 @@ function ThesisContent() {
             });
     };
 
+    const renderAdvisors = () => {
+        return advisors.map(advisor => `${advisor.firstName} ${advisor.lastName}`).join(', ');
+    };
 
     const getContent = () => {
         if (!thesis) {
@@ -296,7 +317,19 @@ function ThesisContent() {
             case 'Author':
                 return thesis.authors || 'No authors available';
             case 'References':
-                return references.length > 0 ? references.join(', ') : 'No references available';
+                return (
+                    <div>
+                        <b>References:</b>
+                        <p>{references.length > 0 ? references.join(', ') : 'No references available'}</p>
+                        <b>Reviewed By:</b>
+                        <p>{renderAdvisors()}</p>
+                    </div>
+                );
+
+
+
+
+
             case 'Keywords':
                 return thesis.thesisKeywords || 'No keywords available';
             default:
@@ -319,15 +352,14 @@ function ThesisContent() {
                                 {liked ? ' Unlike' : ' Like'} {thesis.likes}
                             </button>
                             <div className='divider' />
-                            <button onClick={() => handleDownload(thesis.thesisId)}>Download</button>
-                            {/* <button onClick={() => handleDownload(id)}><FaDownload color='white' /> Download</button> */}
+                            <button onClick={() => handleDownload(thesis.thesisId)}><FaDownload />Download</button>
                         </div>
                     </div>
                     <div className="tabs">
                         <button className='thesis-nav-button' onClick={() => setTab('Abstract')}>Abstract</button>
                         <button className='thesis-nav-button' onClick={() => setTab('Author')}>Authors</button>
                         <button className='thesis-nav-button' onClick={() => setTab('Keywords')}>Keywords</button>
-                        <button className='thesis-nav-button' onClick={() => setTab('References')}>References</button>
+                        <button className='thesis-nav-button' onClick={() => setTab('References')}>Details</button>
                     </div>
                     <div><br></br>
                     </div>
@@ -342,6 +374,7 @@ function ThesisContent() {
     );
 }
 
+
 const Comments = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
@@ -349,8 +382,9 @@ const Comments = () => {
     const [comments, setComments] = useState([]);
     const [commentText, setCommentText] = useState(''); // State to hold the comment text
     const userData = JSON.parse(sessionStorage.getItem('user'));
-    const userId = userData.id; // Assuming the session storage has user 'id' directly
+    const userId = extractUserId(userData);
 
+    console.log("user ID is : ", userId);
     // Fetch comments for the thesis
     useEffect(() => {
         const fetchComments = async () => {
@@ -405,6 +439,24 @@ const Comments = () => {
         }
     };
 
+    // Handle comment deletion
+    const handleDeleteComment = async (commentId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/delete-comment/${commentId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setComments(comments.filter(comment => comment.id !== commentId)); // Remove comment from list
+            } else {
+                throw new Error('Failed to delete comment');
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            alert('Error deleting comment');
+        }
+    };
+
     return (
         <div className="comments">
             <h2>Comments</h2>
@@ -414,14 +466,16 @@ const Comments = () => {
                         <div className="comment" key={comment.id}>
                             <p className='commenter-name'>{comment.name}</p>
                             <p className='comment-text'>{comment.commenttext}</p>
-                            {/* <button className='comment-button-like'><FaThumbsUp /> Like</button>
-                            <button className='comment-button-report'><TbMessageReport /> Report</button> */}
+                            {comment.userId === userId && (
+                                <button className='comment-button-report' onClick={() => handleDeleteComment(comment.id)}><FaTrashAlt /> Delete</button>
+                            )}
                         </div>
                     ))
                 ) : (
                     <p>No Comments</p>
                 )}
             </div>
+
             <form className="comment-form" onSubmit={handleCommentSubmit}>
                 <textarea
                     placeholder="Add a comment..."
@@ -434,6 +488,7 @@ const Comments = () => {
         </div>
     );
 };
+
 
 
 const Thesis = () => (
@@ -452,18 +507,19 @@ const ViewThesis = () => {
             setUserData(storedUserData);
         }
     }, []);
-return(
-    <div>
-        <SearchNavbar />
-        <br></br>
-        <div className="thesis-field">
-            <Thesis />
+    return (
+        <div>
+            <SearchNavbar />
+            <br></br>
+            <div className="thesis-field">
+                <Thesis />
+            </div>
+            <br></br>
+            <Footer />
+            {userData && userData?.role != 'Department Admin' ? <ChatComponent /> : null}
         </div>
-        <br></br>
-        <Footer />
-        {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
-    </div>
-)};
+    )
+};
 
 
 export default ViewThesis;
