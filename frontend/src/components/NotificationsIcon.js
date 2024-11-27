@@ -1,64 +1,95 @@
-/* File written by: Chagamreddy Navyasree, Student ID: 1002197805 */
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoNotificationsCircleOutline } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 
 const NotificationIcon = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0); // State to track unread notifications count
   const userData = JSON.parse(sessionStorage.getItem('user'));
   const keys = Object.keys(userData);
   const userid = userData[keys[1]];
 
+  // Fetch unread count and notifications periodically
+  useEffect(() => {
+    const fetchNotificationsAndUnreadCount = () => {
+      fetch(`http://localhost:3001/api/notifications/${userid}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setNotifications(data); // Update the notifications state
+          const unread = data.filter((notif) => !notif.read).length; // Count unread notifications
+          setUnreadCount(unread);
+        })
+        .catch((error) => console.error('Error fetching notifications:', error));
+    };
+
+    // Initial fetch
+    fetchNotificationsAndUnreadCount();
+
+    // Set interval to fetch notifications every 5 seconds
+    const interval = setInterval(fetchNotificationsAndUnreadCount, 5000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, [userid]);
+
+  // Toggle notifications dropdown
   const toggleNotifications = () => {
     setIsOpen(!isOpen);
 
-    fetch(`http://localhost:3001/api/notifications/${userid}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setNotifications(data);
+    // Mark notifications as read when the dropdown is opened
+    if (!isOpen) {
+      fetch(`http://localhost:3001/api/markNotificationsRead/${userid}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
       })
-      .catch((error) => {
-        console.log("Notification Error:", error);
-      });
+        .then(() => setUnreadCount(0)) // Reset unread count after marking as read
+        .catch((error) =>
+          console.error('Error marking notifications as read:', error)
+        );
+    }
   };
 
+  // Clear all notifications
   const clearNotifications = () => {
     setNotifications([]); // Clear notifications locally
 
-    // Optional: Send a request to clear notifications on the server
     fetch(`http://localhost:3001/api/clearNotifications/${userid}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
       .then((response) => {
         if (response.ok) {
-          console.log("Notifications cleared successfully on the server.");
+          console.log('Notifications cleared successfully on the server.');
         } else {
-          console.error("Failed to clear notifications on the server.");
+          console.error('Failed to clear notifications on the server.');
         }
       })
-      .catch((error) => console.log("Error clearing notifications:", error));
-  };
-
-  const markAsRead = (id) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notif) =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+      .catch((error) => console.log('Error clearing notifications:', error));
   };
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Notification Icon */}
+      {/* Notification Icon with Unread Badge */}
       <Link className="picons" onClick={toggleNotifications}>
         <IoNotificationsCircleOutline />
+        {unreadCount > 0 && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '-5px',
+              right: '-5px',
+              backgroundColor: 'red',
+              color: 'white',
+              borderRadius: '50%',
+              padding: '2px 6px',
+              fontSize: '10px',
+              fontWeight: 'bold',
+            }}
+          >
+            {unreadCount}
+          </span>
+        )}
       </Link>
 
       {/* Notifications Dropdown */}
@@ -77,7 +108,7 @@ const NotificationIcon = () => {
             zIndex: '100',
           }}
         >
-          <h4 style={{ color: 'white', margin: '0 0 10px' }}>Notifications</h4>
+          <h4 style={{ color: 'white', margin: '0 0 10px', textAlign: 'center' }}>Notifications</h4>
           {notifications.length === 0 ? (
             <p style={{ color: 'white' }}>No notifications</p>
           ) : (
@@ -97,21 +128,29 @@ const NotificationIcon = () => {
               >
                 Clear All
               </button>
-              {notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  style={{
-                    padding: '8px',
-                    marginBottom: '5px',
-                    backgroundColor: notif.read ? '#f0f0f0' : '#e8e8e8',
-                    borderRadius: '3px',
-                    color: 'black',
-                  }}
-                  onClick={() => markAsRead(notif.id)}
-                >
-                  {notif.message}
-                </div>
-              ))}
+              {/* Scrollable Notifications List */}
+              <div
+                style={{
+                  maxHeight: '200px', // Set a fixed height
+                  overflowY: 'auto', // Add vertical scroll
+                  paddingRight: '5px', // Add space for scroll bar
+                }}
+              >
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    style={{
+                      padding: '8px',
+                      marginBottom: '5px',
+                      backgroundColor: notif.read ? '#f0f0f0' : '#e8e8e8',
+                      borderRadius: '3px',
+                      color: 'black',
+                    }}
+                  >
+                    {notif.message}
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>

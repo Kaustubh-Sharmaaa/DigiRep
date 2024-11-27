@@ -80,8 +80,7 @@
 }
 .picons:hover{
     font-size: 250%;
-    padding-left: 1%;
-    padding-right: 1%;
+    
     background-color: white;
     border-radius: 40px;
     
@@ -95,8 +94,7 @@
     }
     .picons:hover{
         font-size: 150%;
-        padding-left: 1%;
-        padding-right: 1%;
+        
         background-color: white;
         border-radius: 20px;
     }

@@ -4,26 +4,27 @@ import Footer from "./Footer";
 import SearchNavbar from "./SearchNavBar";
 import '../css/DepartmentAdminDashboard.css';
 
-const ThesesInquiries = () => {
+const OtherInquiries = () => {
     const navigate = useNavigate();
     const [inquiriesPending, setInquiriesPending] = useState([]);
     const [inquiriesAnswered, setInquiriesAnswered] = useState([]);
     
     const fetchData = () => {
-        fetch('http://localhost:3001/api/theses-inquiries-pending')
+        fetch('http://localhost:3001/api/other-inquiries-pending')
             .then(response => response.json())
             .then(data => Array.isArray(data) ? setInquiriesPending(data) : setInquiriesPending([]))
             .catch(error => {
                 console.log('Error fetching pending inquiries:', error);
                 setInquiriesPending([]); // fallback to an empty array on error
             });
-        fetch('http://localhost:3001/api/theses-inquiries-answered')
+        fetch('http://localhost:3001/api/other-inquiries-answered')
             .then(response => response.json())
             .then(data => Array.isArray(data) ? setInquiriesAnswered(data) : setInquiriesAnswered([]))
             .catch(error => {
                 console.log('Error fetching answered inquiries:', error);
                 setInquiriesAnswered([]); // fallback to an empty array on error
             });
+        console.log("answered:",inquiriesAnswered);
     };
 
     useEffect(() => {
@@ -39,11 +40,13 @@ const ThesesInquiries = () => {
 
     // Redirect to the inquiry detail page
     const handleInquiryClick = (id) => {
-        navigate(`/thesisinquirydetail/${id}`);
+        navigate(`/otherinquirydetail/${id}`);
     };
+
     const handleAnsweredInquiryClick = (id) => {
         navigate(`/inquiryanswereddetail/${id}`);
     };
+
     return (
         <div className="dashboard">
             <SearchNavbar />
@@ -101,4 +104,4 @@ const ThesesInquiries = () => {
     );
 };
 
-export default ThesesInquiries;
+export default OtherInquiries;

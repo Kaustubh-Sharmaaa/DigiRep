@@ -523,4 +523,3 @@ const ViewThesis = () => {
 
 
 export default ViewThesis;
-

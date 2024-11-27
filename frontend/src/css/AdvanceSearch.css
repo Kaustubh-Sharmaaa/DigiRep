@@ -4,8 +4,8 @@
   /* Container for the sidebar and search results */
   .advance-search-container {
     display: flex;
-    height: calc(100vh - 60px); /* Subtract the height of SearchNavbar */
-    overflow: hidden;
+    height: 500px; /* Subtract the height of SearchNavbar */
+    overflow-y: auto;
   }
   
   /* Sidebar styling */
@@ -95,4 +95,6 @@
   width: 100%;
   background-color: rgba(18, 18, 18);
   color: white;
+  height: 500px;
+  overflow-y: auto;
 }

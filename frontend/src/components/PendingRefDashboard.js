@@ -121,7 +121,7 @@ const PendingRefTheses = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: thesisReference.studentId,
-                message: `${userData.firstName} ${userData.lastName} has ${actionType} thesis ${thesisReference.thesisId}`
+                message: `${userData.firstName} ${userData.lastName} has ${actionType}d thesis ${thesisReference.thesisId} with comments: "${thesisReference.comment}"`
             }),
         });
 
@@ -168,13 +168,13 @@ const PendingRefTheses = () => {
                                 <div key={thesis.id} className="thesis-card">
                                     <div>
                                         &nbsp;
-                                        <p><strong>Title:</strong> {thesis.title}</p>
+                                        <p><strong>{thesis.title}</strong> </p>
                                         <p><strong>Abstract:</strong> {thesis.abstract}</p>
                                         <p><strong>Submitted by:</strong> {thesis.studentId}</p>
-                                        <button onClick={() => handleView(thesis.thesisId)}>
+                                        <button onClick={() => handleView(thesis.thesisId)} className='viewpdf'>
                                             View PDF
                                         </button>
-                                        <button onClick={() => handleDownload(thesis.thesisId)}>
+                                        <button onClick={() => handleDownload(thesis.thesisId)} className='downloadpdf'>
                                             Download PDF
                                         </button>
                                         &nbsp;
@@ -182,9 +182,9 @@ const PendingRefTheses = () => {
                                     <div >
 
                                         &nbsp;
-                                        <button onClick={() => handleApprove(thesis.thesisId, thesis.studentId)}>Approve</button>
+                                        <button onClick={() => handleApprove(thesis.thesisId, thesis.studentId)} className='approvebutton'>Approve</button>
                                         &nbsp;
-                                        <button onClick={() => handleDecline(thesis.thesisId, thesis.studentId)}>Decline</button>
+                                        <button onClick={() => handleDecline(thesis.thesisId, thesis.studentId)} className='declinebutton'>Decline</button>
                                     </div>
 
                                 </div>

@@ -179,6 +179,7 @@ const SubmitThesis = () => {
             document.getElementById("title").value = "";
             document.getElementById("abstract").value = "";
             setRefAdvisor(null);
+            setValues([]);
             setReqAdvisor([]);
             setRefThesis([]);
             setUploadedFile(null);
@@ -190,6 +191,7 @@ const SubmitThesis = () => {
             document.getElementById("title").value = "";
             document.getElementById("abstract").value = "";
             setRefAdvisor(null);
+            setValues([]);
             setReqAdvisor([]);
             setRefThesis([]);
             setUploadedFile(null);
@@ -278,7 +280,13 @@ const SubmitThesis = () => {
         setRefAdvisor(selectedOptions ? selectedOptions.value : null);
     };
     const handleReqSelectChange = (selectedOptions) => {
-        console.log("seloptions:", selectedOptions);
+        if (selectedOptions.length > 3) {
+            // Prevent user from selecting more than 3
+            selectedOptions = selectedOptions.slice(0, 3);
+            alert('You can not select more than 3 advisors for review');
+          }
+          
+          // Update state with the selected options
         setReqAdvisor(selectedOptions ? selectedOptions.map(option => option.value) : []);
     };
     const handleThesisSelectChange = (selectedOptions) => {
@@ -330,7 +338,8 @@ const SubmitThesis = () => {
                         <div className="containerB">
                         <button className="button-template" onClick={handleGuidelinesDownload}>
                                 <FaDownload />  &nbsp; Download Guidelines
-                            </button>
+                            </button> <br />
+                            
                             <input type="text" className="text-input" id="title" placeholder="Enter Thesis Title here" required />
                             <br />
                             <textarea id="abstract" placeholder="Enter Abstract here"></textarea>
@@ -370,15 +379,15 @@ const SubmitThesis = () => {
                             <br />
 
                             {/* Multi-select for referenced theses */}
-                            <Select
+                          {/*  <Select
                                 styles={customStyles}
                                 options={thesesOptions}
                                 isMulti
                                 onChange={handleThesisSelectChange}
                                 placeholder="Select Referenced Thesis"
-                                value={[ /* Value logic here for refthesis */]}
+                                value={[ ]}
                             />
-                            <br />
+                            <br />*/}
 
                             <button className="button-template" onClick={handleDownload}>
                                 <FaDownload />  &nbsp; Download Template
@@ -392,6 +401,7 @@ const SubmitThesis = () => {
                                 onChange={handleReqSelectChange}
                                 placeholder="Review Requested From"
                                 value={advisorOptions.filter(option => reqadvisor.includes(option.value))}
+                                
                             />
                             <br />
 

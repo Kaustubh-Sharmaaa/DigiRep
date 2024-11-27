@@ -126,20 +126,14 @@ CREATE TABLE IF NOT EXISTS password_resets (    id INT AUTO_INCREMENT PRIMARY KE
       console.log('PasswordReset table ready');
     }
   });
-  connection.query(createThesisTableQuery, (err, result) => {
-    if (err) {
-      console.error('Error creating Thesis table:', err.message);
-    } else {
-      console.log('Thesis table ready');
-    }
-  });
+
   const notificationsTable = `
 CREATE TABLE IF NOT EXISTS notifications (
-    user_id VARCHAR(255) NOT NULL,
-    message VARCHAR(255) NOT NULL,
-    timestamp DATETIME,
-    PRIMARY KEY (user_id, message)
-
+    id INT AUTO_INCREMENT PRIMARY KEY,  
+    user_id VARCHAR(255) NOT NULL,      
+    message VARCHAR(255) NOT NULL,      
+    \`read\` BOOLEAN DEFAULT FALSE,          
+    \`timestamp\` DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `
 
@@ -224,29 +218,9 @@ CREATE TABLE IF NOT EXISTS contact_submissions  (
       console.log('Chat table ready');
     }
   });
-  connection.query(createLikedTableQuery, (err, result) => {
-    if (err) {
-      console.error('Error creating users table:', err.message);
-    } else {
-      console.log('Students table ready');
-    }
-  });
 
-  connection.query(createContactUsQuery, (err, result) => {
-    if (err) {
-      console.error('Error creating users table:', err.message);
-    } else {
-      console.log('Students table ready');
-    }
-  });
 
-  connection.query(createCommentsTableQuery, (err, result) => {
-    if (err) {
-      console.error('Error creating users table:', err.message);
-    } else {
-      console.log('Students table ready');
-    }
-  });
+
 
 
   // ... existing code ...
@@ -332,7 +306,13 @@ CREATE TABLE IF NOT EXISTS messages (
       console.log('Visitors table ready');
     }
   });
-
+  connection.query(createThesisTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating Thesis table:', err.message);
+    } else {
+      console.log('Thesis table ready');
+    }
+  });
   connection.query(createThesisReviewAcceptanceTableQuery, (err, result) => {
     if (err) {
       console.error('Error creating ThesisReviewAcceptance table:', err.message);
@@ -361,9 +341,31 @@ CREATE TABLE IF NOT EXISTS messages (
       console.log('ThesisReferenceDecline table ready');
     }
   });
+  connection.query(createLikedTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating users table:', err.message);
+    } else {
+      console.log('Students table ready');
+    }
+  });
   connection.query(createMessagesTableQuery, (err) => {
     if (err) console.error('Error creating Messages table:', err.message);
     else console.log('Messages table ready');
+  });
+  connection.query(createContactUsQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating users table:', err.message);
+    } else {
+      console.log('Students table ready');
+    }
+  });
+
+  connection.query(createCommentsTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating users table:', err.message);
+    } else {
+      console.log('Students table ready');
+    }
   });
 });
 

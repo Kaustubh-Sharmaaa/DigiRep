@@ -145,13 +145,15 @@ const MyTheses = () => {
                     <br />
                     
                 </div>
-                <div className='input3'>
+                
+                    <br></br>
+            </fieldset>
+            <br></br>
+            <div className='input3'>
                         <button className="button-85" onClick={() => navigate('/submit-thesis')}>
                             Submit a new thesis
                         </button>
                     </div>
-                    <br></br>
-            </fieldset>
             <br />
             <Footer />
             <ChatComponent/>

@@ -320,6 +320,7 @@ main {
 
 .dashboardmt{
     color: white;
-    height: max-content;
+    height: 450px;
+    overflow-y: auto;
     background-color: #131313;
 }

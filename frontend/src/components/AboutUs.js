@@ -49,11 +49,11 @@ const AboutUs = () => {
         },
         {
             name: 'Navya Sree Chagamreddy',
-            linkedin: 'http://linkedin.com/in/',
-            github: '',
-            instagram: '',
+            linkedin: 'http://linkedin.com/in/navyasreechagamreddy/',
+            github: 'https://github.com/NavyaSree1002197805',
+            instagram: 'https://www.instagram.com/chagamreddynavyasree?igsh=MW4ybTBseXVnYXplbg==',
             website: '',
-            email: ''
+            email: 'mailto:nxc7805@mavs.uta.edu'
         },
         {
             name: 'Yugamsinh Chavda',

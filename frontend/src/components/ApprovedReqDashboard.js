@@ -102,10 +102,10 @@ const ApprovedReqTheses = () => {
                                         <p><strong>Title:</strong> {thesis.title}</p>
                                         <p><strong>Abstract:</strong> {thesis.abstract}</p>
                                         <p><strong>Submitted by:</strong> {thesis.studentId}</p>
-                                        <button onClick={() => handleView(thesis.thesisId)}>
+                                        <button onClick={() => handleView(thesis.thesisId)} className='viewpdf'>
                                             View PDF
                                         </button>
-                                        <button onClick={() => handleDownload(thesis.thesisId)}>
+                                        <button onClick={() => handleDownload(thesis.thesisId)} className='downloadpdf'>
                                             Download PDF
                                         </button>
                                         &nbsp;

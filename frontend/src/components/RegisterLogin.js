@@ -15,6 +15,7 @@ const RegisterLogin = () => {
     const [lastName, setLastName] = useState('');
     const [role, setRole] = useState('');
     const [education, setEducation] = useState('');
+    const [isPasswordValid, setIsPasswordValid] = useState(true);
 
     // Refs to manage the active classes for the panels
     const or = useRef(null);
@@ -46,10 +47,10 @@ const RegisterLogin = () => {
 
     const handleSignUp = () => {
 
-        
+
         setIsLoginPanelActive(false);
 
-        
+
     };
 
 
@@ -57,51 +58,55 @@ const RegisterLogin = () => {
     // Handler for login form submission
     const handleLoginSubmit = (e) => {
         e.preventDefault();
+        
         // Login flow
         fetch('http://localhost:3001/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lemail, lpassword }),
         })
-        .then(response => response.json())
-        .then(data => {
-            if (typeof data === 'object' && data !== null) {
-                
-                sessionStorage.setItem('user', JSON.stringify(data));
-                if(data.isVerified=="APPROVED"){
-                    alert(`Logged in as ${data.firstName}!`);
-                if(data.role == "Student"){
-                navigate('/StudentDashboard', { state: { user: data } })
+            .then(response => response.json())
+            .then(data => {
+                if (typeof data === 'object' && data !== null) {
+
+                    sessionStorage.setItem('user', JSON.stringify(data));
+                    if (data.isVerified == "DECLINED") {
+                        alert('Your profile has been declined, please raise an inquiry.');
+                        setPassword('');
+                    }
+                    else if (data.isVerified == "APPROVED") {
+                        alert(`Logged in as ${data.firstName}!`);
+                        if (data.role == "Student") {
+                            navigate('/StudentDashboard', { state: { user: data } })
+                        }
+
+                        if (data.role == "Advisor") {
+                            navigate('/advisorDashboard', { state: { user: data } })
+                        }
+                    }
+                    else {
+                        if (data.role == "Department Admin") {
+                            navigate('/departmentAdminDashboard', { state: { user: data } })
+                        }
+                        else
+                            if (data.role == "Visitor") {
+                                navigate('/VisitorDashboard', { state: { user: data } })
+                            }
+                            else {
+                                alert('Please wait until someone approves your profile');
+                            }
+                        setPassword('');
+                    }
+
+                } else {
+                    setPassword('');
+                    alert("Login failed: " + data);
+                    console.log(data);
                 }
-                
-                if(data.role=="Advisor")
-                    {
-                        navigate('/advisorDashboard', { state: { user: data } })
-                    }
-            }
-            else{
-                if(data.role=="Department Admin")
-                    {
-                        navigate('/departmentAdminDashboard', { state: { user: data } })
-                    }
-               else 
-               if (data.role =="Visitor"){
-                navigate('/VisitorDashboard', { state: { user: data } })
-               }
-               else{alert('Please wait until someone approves your profile');
-               }
-              setPassword('');
-            }
-                
-            } else {
-                setPassword('');
-                alert("Login failed: " + data);
-                console.log(data);
-            }
-        })
-        .catch(error => {
-            console.error("Error during login:", error);
-        });
+            })
+            .catch(error => {
+                console.error("Error during login:", error);
+            });
     };
 
     // Handler for signup form submission
@@ -110,17 +115,27 @@ const RegisterLogin = () => {
 
         //send notification
         // const userData = JSON.parse(sessionStorage.getItem('user'));
-        for(let i = 0; i < 5; i++)
-            {
-                fetch(`http://localhost:3001/api/sendNotifications`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userId :  "da"+ i,
-                        message: `${firstName} ${lastName} user is waiting for approval`
-                    }),
-                });
-            }
+        if (!validatePassword(rpassword)) {
+            resetForm();
+            alert("Password must have at least one uppercase letter, one special character, one number and be at least 5 characters long.");
+            return;
+        }
+
+        if (rpassword !== rcpassword) {
+            resetForm();
+            alert("Passwords do not match.");
+            return;
+        }
+        for (let i = 0; i < 5; i++) {
+            fetch(`http://localhost:3001/api/sendNotifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: "da" + i,
+                    message: `${firstName} ${lastName} user is waiting for approval`
+                }),
+            });
+        }
 
 
         fetch('http://localhost:3001/api/register', {
@@ -140,6 +155,13 @@ const RegisterLogin = () => {
                 if (data === "Success") {
                     alert(`Registered as ${firstName} ${lastName} with role: ${role} and education: ${education}`);
                     setIsLoginPanelActive(true);
+                    setFirstName('');
+                    setLastName('');
+                    setEmail('');
+                    setrPassword('');
+                    setrcPassword('');
+                    setRole('');
+                    setEducation('');
                 } else {
                     alert("Registration failed: " + data);
                     console.log(data);
@@ -166,6 +188,19 @@ const RegisterLogin = () => {
             });
         // Resetting input fields after submission
 
+    };
+    const validatePassword = (password) => {
+        const regex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{5,}$/;
+        return regex.test(password);
+    };
+    const resetForm = () => {
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setrPassword('');
+        setrcPassword('');
+        setRole('');
+        setEducation('');
     };
 
     return (
@@ -258,7 +293,12 @@ const RegisterLogin = () => {
                             type="password"
                             name="password"
                             value={rpassword}
-                            onChange={(e) => setrPassword(e.target.value)}
+                            //  onChange={(e) => setrPassword(e.target.value)}
+                            onChange={(e) => {
+                                const newPassword = e.target.value;
+                                setrPassword(newPassword);
+                                setIsPasswordValid(validatePassword(newPassword)); // Update validity state
+                            }}
                             placeholder="Password"
                             className="inputR"
                             required

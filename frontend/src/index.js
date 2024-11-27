@@ -31,6 +31,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"; // Imports for 
 import ThesesInquiries from './components/ThesesInquiries';
 import AnswerThesisInquiry from './components/AnswerThesisInquiry';
 import Chat from './components/Chat';
+import OtherInquiries from './components/OtherInquiries';
+import AnswerOtherInquiry from './components/AnswerOtherInquiry';
+import ViewAnsweredInquiry from './components/ViewAnsweredInquiry';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -65,6 +68,9 @@ root.render(
         <Route path="/approvedReqTheses" element={ <ApprovedReqTheses/>}/>
         <Route path="/thesesInquiries" element={ <ThesesInquiries/>}/>
         <Route path="/thesisinquirydetail/:id" element={<AnswerThesisInquiry />} />
+        <Route path="/otherInquiries" element={ <OtherInquiries/>}/>
+        <Route path="/otherinquirydetail/:id" element={<AnswerOtherInquiry />} />
+        <Route path="/inquiryanswereddetail/:id" element={<ViewAnsweredInquiry />} />
         <Route path="/chat" element={<Chat />} />
       </Routes>
     </BrowserRouter>

@@ -596,7 +596,7 @@ const DepartmentAdminDashboard = () => {
                                 value={studentPendingsearchTerm} // Controlled input value
                                 onChange={handleStudentsPendingSearch} // Update state on input change
                                 onKeyDown={handlePendingStudentsSearchKeyDown} // Listen for the Enter key
-                            /><button onClick={handleStudentsPendingClearSearch}>Clear</button>
+                            /><button onClick={handleStudentsPendingClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(studentsPending) && studentsPending.length > 0 ? (
                                 studentsPending.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -606,10 +606,10 @@ const DepartmentAdminDashboard = () => {
                                             <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                            <button onClick={() => handleApprove(user.id)} className="button-approve">
+                                            <button onClick={() => handleApprove(user.id)} className="approvebutton">
                                                 Approve
                                             </button>
-                                            <button onClick={() => handleDecline(user.id)} className="button-decline">
+                                            <button onClick={() => handleDecline(user.id)} className="declinebutton">
                                                 Decline
                                             </button>
                                         </div>
@@ -634,7 +634,7 @@ const DepartmentAdminDashboard = () => {
                                 value={studentDeclinedsearchTerm} // Controlled input value
                                 onChange={handleStudentsDeclinedSearch} // Update state on input change
                                 onKeyDown={handleDeclinedStudentsSearchKeyDown} // Listen for the Enter key
-                            /><button onClick={handleStudentsDeclinedClearSearch}>Clear</button>
+                            /><button onClick={handleStudentsDeclinedClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(studentsDeclined) && studentsDeclined.length > 0 ? (
                                 studentsDeclined.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -644,10 +644,10 @@ const DepartmentAdminDashboard = () => {
                                             <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                            <button onClick={() => handlePending(user.id)} className="button-approve">
+                                            <button onClick={() => handlePending(user.id)} className="pendingbutton">
                                                 Pending
                                             </button>
-                                            <button onClick={() => handleDelete(user.id)} className="button-approve">
+                                            <button onClick={() => handleDelete(user.id)} className="deletebutton">
                                                 Delete
                                             </button>
                                         </div>
@@ -674,7 +674,7 @@ const DepartmentAdminDashboard = () => {
                                 onChange={handleStudentsApprovedSearch} // Update state on input change
                                 onKeyDown={handleApprovedStudentsSearchKeyDown} // Listen for the Enter key
                             />
-                            <button onClick={handleStudentsApprovedClearSearch}>Clear</button>
+                            <button onClick={handleStudentsApprovedClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(studentsApproved) && studentsApproved.length > 0 ? (
                                 studentsApproved.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -684,7 +684,7 @@ const DepartmentAdminDashboard = () => {
                                             <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                            <button onClick={() => handlePending(user.id)} className="button-approve">
+                                            <button onClick={() => handlePending(user.id)} className="pendingbutton">
                                                 Pending
                                             </button>
                                         </div>
@@ -712,7 +712,7 @@ const DepartmentAdminDashboard = () => {
                                 value={advisorPendingsearchTerm} // Controlled input value
                                 onChange={handleAdvisorsPendingSearch} // Update state on input change
                                 onKeyDown={handlePendingAdvisorsSearchKeyDown} // Listen for the Enter key
-                            /><button onClick={handleAdvisorsPendingClearSearch}>Clear</button>
+                            /><button onClick={handleAdvisorsPendingClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(advisorsPending) && advisorsPending.length > 0 ? (
                                 advisorsPending.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -722,10 +722,10 @@ const DepartmentAdminDashboard = () => {
                                         <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                        <button onClick={() => handleAdvisorApprove(user.id)} className="button-approve">
+                                        <button onClick={() => handleAdvisorApprove(user.id)} className="approvebutton">
                                             Approve
                                         </button>
-                                        <button onClick={() => handleAdvisorDecline(user.id)} className="button-decline">
+                                        <button onClick={() => handleAdvisorDecline(user.id)} className="declinebutton">
                                             Decline
                                         </button>
                                         </div>
@@ -751,7 +751,7 @@ const DepartmentAdminDashboard = () => {
                                 value={advisorDeclinedsearchTerm} // Controlled input value
                                 onChange={handleAdvisorsDeclinedSearch} // Update state on input change
                                 onKeyDown={handleDeclinedAdvisorsSearchKeyDown} // Listen for the Enter key
-                            /><button onClick={handleAdvisorsDeclinedClearSearch}>Clear</button>
+                            /><button onClick={handleAdvisorsDeclinedClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(advisorsDeclined) && advisorsDeclined.length > 0 ? (
                                 advisorsDeclined.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -761,10 +761,10 @@ const DepartmentAdminDashboard = () => {
                                         <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                        <button onClick={() => handleAdvisorPending(user.id)} className="button-approve">
+                                        <button onClick={() => handleAdvisorPending(user.id)} className="pendingbutton">
                                             Pending
                                         </button>
-                                        <button onClick={() => handleAdvisorDelete(user.id)} className="button-decline">
+                                        <button onClick={() => handleAdvisorDelete(user.id)} className="deletebutton">
                                             Delete
                                         </button>
                                         </div>
@@ -790,7 +790,7 @@ const DepartmentAdminDashboard = () => {
                                 value={advisorApprovedsearchTerm} // Controlled input value
                                 onChange={handleAdvisorsApprovedSearch} // Update state on input change
                                 onKeyDown={handleApprovedAdvisorsSearchKeyDown} // Listen for the Enter key
-                            /><button onClick={handleAdvisorsApprovedClearSearch}>Clear</button>
+                            /><button onClick={handleAdvisorsApprovedClearSearch} className='clearbutton'>Clear</button>
                             {Array.isArray(advisorsApproved) && advisorsApproved.length > 0 ? (
                                 advisorsApproved.slice(0, 3).map(user => (
                                     <div key={user.id} className="user-card">
@@ -800,7 +800,7 @@ const DepartmentAdminDashboard = () => {
                                         <p><strong>Education:</strong> {user.education}</p>
                                         </div>
                                         <div>
-                                        <button onClick={() => handleAdvisorPending(user.id)} className="button-approve">
+                                        <button onClick={() => handleAdvisorPending(user.id)} className="pendingbutton">
                                             Pending
                                         </button>
                                         </div>
@@ -820,6 +820,17 @@ const DepartmentAdminDashboard = () => {
 
                     
                 </div>
+                <br>
+                </br>
+                <br>
+                </br>
+                <div className='input3'>
+                <button className="button-85" onClick={() => navigate('/otherInquiries')}>
+                            View Inquiries
+                        </button>
+                    </div>
+               
+                        <br></br>
             </fieldset>
             <br />
 
