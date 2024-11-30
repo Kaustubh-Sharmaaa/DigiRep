@@ -12,6 +12,10 @@
     border-style: solid;
 }
 
+#thesisChart {
+    background-color: white;
+}
+
 .topthesis,
 .fromauthor {
     align-items: center;

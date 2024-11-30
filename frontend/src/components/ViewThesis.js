@@ -8,6 +8,12 @@ import SearchNavbar from './SearchNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import ChatComponent from './ChatComponent';
+
+
+
+var curr_thesis_author = "";
+var curr_thesis_id = "";
+
 const TopThesis = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -90,6 +96,10 @@ const FromAuthor = () => {
     }, [currentThesisId]);
 
     console.log(thesis);
+    if (thesis) {
+        curr_thesis_author = thesis.studentId;
+        console.log("current thesis author: ", curr_thesis_author);
+    }
 
     useEffect(() => {
         if (thesis && thesis.studentId) {
@@ -466,7 +476,7 @@ const Comments = () => {
                         <div className="comment" key={comment.id}>
                             <p className='commenter-name'>{comment.name}</p>
                             <p className='comment-text'>{comment.commenttext}</p>
-                            {comment.userId === userId && (
+                            {((comment.userId === userId) || (curr_thesis_author === userId)) && (
                                 <button className='comment-button-report' onClick={() => handleDeleteComment(comment.id)}><FaTrashAlt /> Delete</button>
                             )}
                         </div>
