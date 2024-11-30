@@ -100,10 +100,9 @@ const StudentsPending = () => {
 
             <fieldset className='dashboardfs'>
                 <div className='VerificationDashboard'>
-                    <h2>Students Accounts</h2>
-                    <div className='Verification'>
-                        <div className='blocksDashboard'>
-                            <h3>Pending Verification</h3>
+                    <h2>Pending Verification Students Accounts</h2>
+                    <div className='VerificationA'>
+                        <div className='blocksDashboardd'>
                             <input
                                 type="text"
                                 className='inputsn' // Class for styling the input
@@ -114,8 +113,9 @@ const StudentsPending = () => {
                             />
                             <button onClick={handleClearSearch}>Clear</button>
                             {Array.isArray(studentsPending) && studentsPending.length > 0 ? (
-                                studentsPending.map(user => (
-                                    <div key={user.id} className="user-card">
+                                studentsPending.map((user,index) => (
+                                    <div key={user.id} className="updates-card">
+                                        <p>{index+1}</p>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
                                         <p><strong>Email:</strong> {user.email}</p>
                                         <p><strong>Education:</strong> {user.education}</p>

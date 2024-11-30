@@ -147,8 +147,10 @@ const SubmitThesis = () => {
 
                     if (fileUploadResponse.ok) {
                         const fileUploadData = await fileUploadResponse.json();
-                        console.log('Feile uploaded successfully:', fileUploadData);
+                        console.log('File uploaded successfully:', fileUploadData);
+                        navigate(`/viewthesis?query=${data.thesisId}`);
                         alert("Thesis and file submitted successfully!");
+
                     } else {
                         console.error('Failed to upload file:', fileUploadResponse.status);
                         alert("Error uploading file, please try again later.");

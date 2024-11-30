@@ -1030,19 +1030,255 @@ app.get('/api/students-approved', (req, res) => {
 app.post('/api/publish-thesis/:thesisId', (req, res) => {
   const { thesisId } = req.params;
 
-  // Update status of user to 'approved'
-  const query = `
-      UPDATE thesis SET publishStatus = 'Approved', publishDateTime = CURRENT_TIMESTAMP
-WHERE thesisId = ?;
+  // Step 1: Fetch thesis and student details
+  const fetchDetailsQuery = `
+    SELECT t.title, s.firstName, s.lastName 
+    FROM thesis t 
+    JOIN students s ON t.studentId = s.studentID 
+    WHERE t.thesisId = ?;
   `;
 
-  db.query(query, [thesisId], (err, result) => {
+  db.query(fetchDetailsQuery, [thesisId], (err, detailsResult) => {
     if (err) {
-      return res.json({ error: err.message });
+      return res.json({ error: `Failed to fetch details: ${err.message}` });
     }
-    console.log('Query result:', result);
-    res.json({ message: 'thesis published successfully' });
+
+    if (detailsResult.length === 0) {
+      return res.json({ error: 'Thesis not found' });
+    }
+
+    const { title, firstName, lastName } = detailsResult[0];
+
+    // Step 2: Update publish status
+    const updateThesisQuery = `
+      UPDATE thesis 
+      SET publishStatus = 'Approved', publishDateTime = CURRENT_TIMESTAMP 
+      WHERE thesisId = ?;
+    `;
+
+    db.query(updateThesisQuery, [thesisId], (err, updateResult) => {
+      if (err) {
+        return res.json({ error: `Failed to update thesis: ${err.message}` });
+      }
+
+      // Step 3: Insert into updates table
+      const updateMessage = `${firstName} ${lastName} has published thesis - ${title}`;
+      const insertUpdateQuery = `
+        INSERT INTO updates (updateMessage, thesisId) 
+        VALUES (?, ?);
+      `;
+
+      db.query(insertUpdateQuery, [updateMessage, thesisId], (err, insertResult) => {
+        if (err) {
+          return res.json({ error: `Failed to insert update: ${err.message}` });
+        }
+
+        console.log('Query result:', insertResult);
+        res.json({ message: 'thesis published successfully' });
+      });
+    });
   });
+});
+
+app.get('/api/getLatestUpdates', (req, res) => {
+ 
+
+  const query = `
+      SELECT 
+          * 
+      FROM updates
+      ORDER BY updateAt DESC;
+  `;
+
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Error fetching latest updates:', err);
+          res.status(500).json({ error: 'Failed to fetch latest updates' });
+      } else {
+          res.json(results);
+      }
+  });
+});
+
+app.get('/api/student-published-thesis-search/:id', (req, res) => {
+  const { id } = req.params; // User's ID
+  const { searchTerm } = req.query; // Search term from query parameter
+
+  // Validate that the search term exists
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to allow partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve published theses for the given student ID with the search term
+  const query = `
+    SELECT *
+    FROM thesis
+    WHERE studentId = ? 
+    AND publishStatus = 'APPROVED'
+    AND (
+        title LIKE ? 
+        OR abstract LIKE ? 
+        OR JSON_CONTAINS(thesisKeywords, JSON_ARRAY(?))
+    )
+  `;
+
+  // Execute the query with the search term and student ID
+  db.query(
+    query,
+    [id, likeSearchTerm, likeSearchTerm, searchTerm],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving published theses for user:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      // Send the results as a JSON response
+      res.json(results);
+    }
+  );
+});
+
+//pending
+
+app.get('/api/student-pending-thesis-search/:id', (req, res) => {
+  const { id } = req.params; // User's ID
+  const { searchTerm } = req.query; // Search term from query parameter
+
+  // Validate that the search term exists
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to allow partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve published theses for the given student ID with the search term
+  const query = `
+    SELECT *
+    FROM thesis
+    WHERE studentId = ? 
+    AND (
+    refAdvisorAcceptance = 'PENDING'
+     OR req1ReviewStatus = 'PENDING'
+     OR req2ReviewStatus = 'PENDING'
+     OR req3ReviewStatus = 'PENDING')
+    AND (
+        title LIKE ? 
+        OR abstract LIKE ? 
+        OR JSON_CONTAINS(thesisKeywords, JSON_ARRAY(?))
+    )
+  `;
+
+  // Execute the query with the search term and student ID
+  db.query(
+    query,
+    [id, likeSearchTerm, likeSearchTerm, searchTerm],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving published theses for user:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      // Send the results as a JSON response
+      res.json(results);
+    }
+  );
+});
+
+//readytopublish
+app.get('/api/student-approved-thesis-search/:id', (req, res) => {
+  const { id } = req.params; // User's ID
+  const { searchTerm } = req.query; // Search term from query parameter
+
+  // Validate that the search term exists
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to allow partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve published theses for the given student ID with the search term
+  const query = `
+    SELECT *
+    FROM thesis
+    WHERE studentId = ? 
+    AND (
+    refAdvisorAcceptance = 'APPROVED'
+     AND req1ReviewStatus = 'APPROVED'
+     AND req2ReviewStatus = 'APPROVED'
+     AND req3ReviewStatus = 'APPROVED')
+    AND (
+        title LIKE ? 
+        OR abstract LIKE ? 
+        OR JSON_CONTAINS(thesisKeywords, JSON_ARRAY(?))
+    )
+  `;
+
+  // Execute the query with the search term and student ID
+  db.query(
+    query,
+    [id, likeSearchTerm, likeSearchTerm, searchTerm],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving ready to publish theses for user:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      // Send the results as a JSON response
+      res.json(results);
+    }
+  );
+});
+
+//declined
+
+app.get('/api/student-declined-thesis-search/:id', (req, res) => {
+  const { id } = req.params; // User's ID
+  const { searchTerm } = req.query; // Search term from query parameter
+
+  // Validate that the search term exists
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  // Format the search term to allow partial matching
+  const likeSearchTerm = `%${searchTerm}%`;
+
+  // MySQL query to retrieve published theses for the given student ID with the search term
+  const query = `
+    SELECT *
+    FROM thesis
+    WHERE studentId = ? 
+    AND (
+    refAdvisorAcceptance = 'REJECTED'
+     OR req1ReviewStatus = 'REJECTED'
+     OR req2ReviewStatus = 'REJECTED'
+     OR req3ReviewStatus = 'REJECTED')
+    AND (
+        title LIKE ? 
+        OR abstract LIKE ? 
+        OR JSON_CONTAINS(thesisKeywords, JSON_ARRAY(?))
+    )
+  `;
+
+  // Execute the query with the search term and student ID
+  db.query(
+    query,
+    [id, likeSearchTerm, likeSearchTerm, searchTerm],
+    (err, results) => {
+      if (err) {
+        console.error("Error retrieving published theses for user:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+
+      // Send the results as a JSON response
+      res.json(results);
+    }
+  );
 });
 // Approve a user
 app.post('/api/approve-student/:userId', (req, res) => {

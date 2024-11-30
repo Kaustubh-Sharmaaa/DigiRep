@@ -34,6 +34,7 @@ import Chat from './components/Chat';
 import OtherInquiries from './components/OtherInquiries';
 import AnswerOtherInquiry from './components/AnswerOtherInquiry';
 import ViewAnsweredInquiry from './components/ViewAnsweredInquiry';
+import HomePage from './components/HomePage';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -45,8 +46,9 @@ root.render(
         <Route path="/forgotPassword" element={<ForgotPassword />} /> {/* Password recovery page */}
         <Route path="/Faq" element={<Faq />} /> {/* FAQ page */}
         <Route path="/departmentAdminDashboard" element={<DepartmentAdminDashboard />} /> {/* FAQ page */}
-        <Route path="/" element={<RegisterLogin />} />  {/* User Registration/Login component */}
-        <Route path="/studentDashboard" element={<Statistics />} />  {/* User Registration/Login component */}
+        <Route path="/" element={<HomePage />} />  {/* User Registration/Login component */}
+        <Route path="/RegisterLogin" element={<RegisterLogin />} />  {/* User Registration/Login component */}
+        <Route path="/studentDashboard" element={<MyTheses />} />  {/* User Registration/Login component */}
         <Route path="/submit-thesis" element={<SubmitThesis />} />
         <Route path="/advisorDashboard" element={<AdvisorDashboard />} />
         <Route path="/pendingRefTheses" element={<PendingRefTheses />} />

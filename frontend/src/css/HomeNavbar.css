@@ -1,0 +1,67 @@
+.homenavbar-left-section{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: max-content;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+.loginbutton {
+    padding: 1%;
+}
+.homebaricon {
+    font-size: 150%;
+}
+.homebaricon2 {
+    font-size: 200%;
+}
+.fieldsetH{
+    background-color: #131313;
+    border: 1.5px solid #434343;
+    padding: 1% 1% 1%;
+    margin-left: 3%;
+    margin-right: 3%;
+    font-size: 100%;
+    text-align: justify;
+    line-height: 150%;
+    border-radius: var(--button-radius);
+    color: white;
+    height: max-content;
+    
+    flex-direction: column;
+    width: 95vw;
+ }
+
+ .updates-card{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgb(58, 58, 58);
+    cursor: pointer;
+}
+
+.updates-card:hover{
+    background-color: #202020;
+    transform: scale(1.01);
+}
+
+.featured-theses{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.featured-theses>div{
+    display: flex;
+    flex-direction: column;
+}
+
+.thesis-card-container{
+    text-align: center;
+}
+
+
+

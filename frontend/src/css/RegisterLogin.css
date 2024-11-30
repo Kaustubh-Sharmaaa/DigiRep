@@ -368,6 +368,18 @@ button{
     border: 1px solid black;
     padding: 10%;
 }
+.pendingbutton2{
+    border-radius: 50px;
+    background-color: rgb(229, 182, 14);
+    color: #000000;
+    border: 1px solid black;
+    padding: 1%;
+}
+.pendingbutton2:hover{
+    transform: scale(1.1);
+    background-color: rgb(209, 173, 28);
+    color: #000000;
+}
 .pendingbutton:hover{
     transform: scale(1.1);
     background-color: rgb(209, 173, 28);
@@ -384,6 +396,44 @@ button{
 .deletebutton:hover{
     transform: scale(1.1);
     background-color: rgb(157, 65, 65);
+    color: #000000;
+}
+
+.deletebutton2{
+    border-radius: 50px;
+    background-color: rgb(139, 8, 8);
+    color: #ffffff;
+    border: 1px solid black;
+    padding: 1%;
+}
+.deletebutton2:hover{
+    transform: scale(1.1);
+    background-color: rgb(157, 65, 65);
+    color: #000000;
+}
+
+.approvebutton2{
+    border-radius: 50px;
+    background-color: rgb(14, 229, 14);
+    color: #000000;
+    padding: 1%;
+    border: 1px solid black;
+}
+.approvebutton2:hover{
+    transform: scale(1.1);
+    background-color: rgb(72, 154, 72);
+    color: #000000;
+}
+.declinebutton2{
+    border-radius: 50px;
+    background-color: rgb(238, 54, 54);
+    color: white;
+    padding: 1%;
+    border: 1px solid black;
+}
+.declinebutton2:hover{
+    transform: scale(1.1);
+    background-color: rgb(194, 47, 47);
     color: #000000;
 }
 .viewpdf,.downloadpdf{

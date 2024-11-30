@@ -13,14 +13,13 @@ import ChatComponent from './ChatComponent';
 // Define the AboutUs component
 const AboutUs = () => {
     const [userData, setUserData] = useState(null);
-    useEffect(()=>{
+    useEffect(() => {
         const storedUserData = JSON.parse(sessionStorage.getItem('user'));
-        console.log("data",storedUserData);
-        if(storedUserData)
-        {
+        console.log("data", storedUserData);
+        if (storedUserData) {
             setUserData(storedUserData);
         }
-    },[]);
+    }, []);
     // Array of team members with their name and social media links
     const teamMembers = [
         {
@@ -76,11 +75,11 @@ const AboutUs = () => {
     // JSX to render the About Us page content
     return (
         <div>
-           {userData ? <SearchNavbar /> : <Navbar />}
+            {userData ? <SearchNavbar /> : <Navbar />}
             <div className='fcenter'> {/* Centralized content container */}
                 <fieldset className='fieldsetA'> {/* Styled box for content */}
                     <legend className='legendA'> {/* Title for the fieldset */}
-                        <h2>ABOUT US</h2>
+                        <h2>About Us</h2>
                     </legend>
                     <p>
                         Welcome to the Digital Thesis Repository, a centralized platform designed to collect, showcase, and facilitate access to scholarly work, including theses and dissertations. Our mission is to support academic growth by providing a seamless and user-friendly experience for students, researchers, and faculty to store, share, and explore research across a wide range of disciplines.
@@ -96,7 +95,7 @@ const AboutUs = () => {
 
                         <h2>Meet The Team</h2> {/* Team section */}
                     </p>
-                    
+
                     {/* Loop through the team members array and render each member's name and social links */}
                     <div className='team-container'>
                         {teamMembers.map((member, index) => (
@@ -138,10 +137,15 @@ const AboutUs = () => {
                         We are a group of graduate students dedicated to making research more accessible and streamlined for academic communities. Our team consists of tech enthusiasts and aspiring researchers who have come together to build this platform with the goal of fostering academic collaboration. Each of us brings our unique skills to the project, from software development to user experience design, ensuring that the platform is not only functional but also user-friendly. And yes, we're all working hard to ace this project while contributing something meaningful to the academic world!
                         <br></br>
                     </p>
+                    <p>
+                        <h2>Email Us at</h2> {/* Who We Are section */}
+                        <a href='mailto:digithesrepo2@gmail.com'>digithesrepo2@gmail.com</a>
+                        <br></br>
+                    </p>
                 </fieldset>
             </div>
             <Footer /> {/* Renders the footer at the bottom of the page */}
-            {userData && userData?.role != 'Department Admin'? <ChatComponent/>:null}
+            {userData && userData?.role != 'Department Admin' ? <ChatComponent /> : null}
             <br></br>
             <br></br>
         </div>

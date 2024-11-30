@@ -18,7 +18,7 @@ const Chat = () => {
         }
         fetchData();
     }, []);
-    
+
     useEffect(() => {
         if (userData) {
             const userId = userData?.role === 'Student' ? userData.studentID :
@@ -234,6 +234,18 @@ const Chat = () => {
             return () => clearInterval(interval);
         }
     }, [userData]);
+    function formatSentAt(sentAt) {
+        const date = new Date(sentAt);
+        const formattedDate = date.toLocaleString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false, // Optional: Set to false for 24-hour format
+        });
+        return formattedDate;
+    }
 
     return (
         <div>
@@ -274,8 +286,8 @@ const Chat = () => {
 
                         </div>
                         <div className="chatdiv">
-                            <h3>{userData ? `You are logged in as: ${userData.firstName} ${userData.lastName}` : null}<br></br>{selectedUser ? `Chat with ${selectedUser.firstname} ${selectedUser.lastname}` : 'Select a user'}</h3>
-
+                            {/* <h3>{userData ? `You are logged in as: ${userData.firstName} ${userData.lastName}` : null}<br></br>{selectedUser ? `Chat with ${selectedUser.firstname} ${selectedUser.lastname}` : 'Select a user'}</h3> */}
+                            <h3>{selectedUser ? `Chat with ${selectedUser.firstname} ${selectedUser.lastname}` : 'Select a user'}</h3>
                             <div
                                 className="messagesDiv"
                                 ref={messagesContainerRef}
@@ -283,22 +295,25 @@ const Chat = () => {
                             >
                                 {messages.map(msg => (
                                     <div
-                                    key={msg.id}
-                                    className={`messageCard ${
-                                        msg.fromUser ===
-                                        (userData.role === 'Student'
-                                            ? userData.studentID
-                                            : userData.role === 'Advisor'
-                                            ? userData.advisorID
-                                            : userData.visitorID)
-                                            ? 'userMessage'
-                                            : 'otherMessage'
-                                    }`}
-                                >
-                                
+                                        key={msg.id}
+                                        className={`messageCard ${msg.fromUser ===
+                                                (userData.role === 'Student'
+                                                    ? userData.studentID
+                                                    : userData.role === 'Advisor'
+                                                        ? userData.advisorID
+                                                        : userData.visitorID)
+                                                ? 'userMessage'
+                                                : 'otherMessage'
+                                            }`}
+                                    >
+
                                         <p>
                                             {msg.message}
+                                            
                                         </p>
+                                        <p className='time'>
+                                                {formatSentAt(msg.sentAt)}
+                                            </p>
                                     </div>
                                 ))}
                                 <div ref={messagesEndRef}></div>

@@ -116,10 +116,9 @@ const AdvisorsDeclined = () => {
 
             <fieldset className='dashboardfs'>
                 <div className='VerificationDashboard'>
-                    <h2>Advisors Accounts</h2>
-                    <div className='Verification'>
-                        <div className='blocksDashboard'>
-                            <h3>Declined Verification</h3>
+                    <h2>Declined Verification Advisors Accounts</h2>
+                    <div className='VerificationA'>
+                        <div className='blocksDashboardd'>
                             <input
                                 type="text"
                                 className='inputsn' // Class for styling the input
@@ -128,17 +127,18 @@ const AdvisorsDeclined = () => {
                                 onChange={handleSearch} // Update state on input change
                                 onKeyDown={handleDeclinedAdvisorsSearchKeyDown} // Listen for the Enter key
                             />
-                            <button onClick={handleClearSearch}>Clear</button>
+                            <button onClick={handleClearSearch} className='clearbutton2'>Clear</button>
                             {Array.isArray(advisorsDeclined) && advisorsDeclined.length > 0 ? (
-                                advisorsDeclined.map(user => (
-                                    <div key={user.id} className="user-card">
+                                advisorsDeclined.map((user,index) => (
+                                    <div key={user.id} className="updates-card">
+                                        <p>{index+1}</p>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
                                         <p><strong>Email:</strong> {user.email}</p>
                                         <p><strong>Education:</strong> {user.education}</p>
-                                        <button onClick={() => handlePending(user.id)} className="button-approve">
+                                        <button onClick={() => handlePending(user.id)} className="pendingbutton2">
                                             Pending
                                         </button>
-                                        <button onClick={() => handleDelete(user.id)} className="button-approve">
+                                        <button onClick={() => handleDelete(user.id)} className="deletebutton2">
                                             Delete
                                         </button>
 

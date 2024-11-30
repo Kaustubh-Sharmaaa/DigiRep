@@ -5,7 +5,7 @@ import '../css/RegisterLogin.css'; // Importing CSS for styling the register/log
 import Footer from './Footer'
 const RegisterLogin = () => {
     // State hooks to manage form inputs and login panel state
-    const [isLoginPanelActive, setIsLoginPanelActive] = useState(true);
+    const [isLoginPanelActive, setIsLoginPanelActive] = useState(false);
     const [email, setEmail] = useState('');
     const [lemail, setlEmail] = useState('');
     const [lpassword, setPassword] = useState('');

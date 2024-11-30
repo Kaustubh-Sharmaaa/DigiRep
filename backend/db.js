@@ -211,6 +211,16 @@ CREATE TABLE IF NOT EXISTS contact_submissions  (
 
     FOREIGN KEY (thesisId) REFERENCES thesis(thesisId)
   );`
+
+  //latest updates
+
+  const createUpdatesTableQuery = `CREATE TABLE IF NOT EXISTS updates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    updateMessage VARCHAR(255) NOT NULL,
+    thesisId VARCHAR(255) NOT NULL,
+    FOREIGN KEY (thesisId) REFERENCES thesis(thesisId),
+    updateAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  );`
   connection.query(createChatTableQuery, (err, result) => {
     if (err) {
       console.error('Error creating chat table:', err.message);
@@ -365,6 +375,14 @@ CREATE TABLE IF NOT EXISTS messages (
       console.error('Error creating users table:', err.message);
     } else {
       console.log('Students table ready');
+    }
+  });
+
+  connection.query(createUpdatesTableQuery, (err, result) => {
+    if (err) {
+      console.error('Error creating updates table:', err.message);
+    } else {
+      console.log('Updates table ready');
     }
   });
 });

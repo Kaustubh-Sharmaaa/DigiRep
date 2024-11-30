@@ -78,7 +78,9 @@ const ContactUs = () => {
                     <legend className='legendA'>
                         <h2>Contact Us</h2>
                     </legend>
+                    
                     <form className="formM" onSubmit={handleFormSubmit}>
+                    
                         <div className='names'>
                             <input
                                 type='text'
@@ -162,6 +164,8 @@ const ContactUs = () => {
                         <div className='input3'>
                             <button className="button-85" type="submit">Submit Inquiry</button>
                         </div>
+                        <br></br>
+                        <p>You can either fill the form above or email us at <a href='mailto:digithesrepo2@gmail.com'>digithesrepo2@gmail.com</a></p>
                         <br />
                     </form>
                 </fieldset>

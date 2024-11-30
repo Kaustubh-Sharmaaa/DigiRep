@@ -40,10 +40,10 @@
     margin-right: 3%;
     font-size: 100%;
     text-align: justify;
-    line-height: 150%;
+    line-height: 100%;
     border-radius: var(--button-radius);
     color: white;
-    height: max-content;
+    height: 500px;
     width: 90vw;
     display: flex;
     align-items: center;
@@ -180,6 +180,18 @@
     background-color: rgb(31, 31, 203); /* Light gray background for other person messages */
     width: 100%;
     color: white;
+}
+
+.userMessage>.time{
+    float: left;
+    font-size: 70%;
+    color: gray;
+}
+
+.otherMessage>.time{
+    float: right;
+    font-size: 70%;
+    color: gray;
 }
 .unread-count {
     background-color: red;
