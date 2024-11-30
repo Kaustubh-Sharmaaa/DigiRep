@@ -99,10 +99,9 @@ const StudentsApproved = () => {
 
             <fieldset className='dashboardfs'>
                 <div className='VerificationDashboard'>
-                    <h2>Students Accounts</h2>
-                    <div className='Verification'>
-                        <div className='blocksDashboard'>
-                            <h3>Approved Verification</h3>
+                    <h2>Approved Verification Students Accounts</h2>
+                    <div className='VerificationA'>
+                        <div className='blocksDashboardd'>
                             <input
                                 type="text"
                                 className='inputsn' // Class for styling the input
@@ -113,12 +112,13 @@ const StudentsApproved = () => {
                             />
                             <button onClick={handleClearSearch}>Clear</button>
                             {Array.isArray(studentsApproved) && studentsApproved.length > 0 ? (
-                                studentsApproved.map(user => (
-                                    <div key={user.id} className="user-card">
+                                studentsApproved.map((user,index) => (
+                                    <div key={user.id} className="updates-card">
+                                        <p>{index+1}</p>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
                                         <p><strong>Email:</strong> {user.email}</p>
                                         <p><strong>Education:</strong> {user.education}</p>
-                                        <button onClick={() => handlePending(user.id)} className="button-approve">
+                                        <button onClick={() => handlePending(user.id)} className="pendingbutton2">
                                             Pending
                                         </button>
 

@@ -25,7 +25,8 @@ function PublishThesisCard({ thesis, isTrending, onActionComplete }) {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message == "thesis published successfully") {
+                    console.log("response:",data);
+                    if (data.message == "Thesis published successfully and update logged") {
                         if (onActionComplete) {
                             onActionComplete();
                         }

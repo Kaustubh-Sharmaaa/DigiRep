@@ -153,12 +153,12 @@
 
 .searchnavbar ul {
     position: absolute;
-    top: calc(100% + 5px); /* Position below the search bar */
-    left: 0; /* Align with the search bar */
+    top: 86%; /* Position below the search bar */
+    left: 32.8%; /* Align with the search bar */
     background-color: #2b2b2b;
     color: white;
-    width: 100%; /* Match the width of the search bar */
-    border-radius: 10px;
+    width: 37%; /* Match the width of the search bar */
+    border-radius: 0 0 10px 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     list-style: none;
     padding: 0;
@@ -166,6 +166,7 @@
     z-index: 1100; /* Ensure it overlaps main content */
     overflow-y: auto;
     max-height: 200px; /* Adds a max height for large dropdowns */
+    border: 1px solid white;
 }
 
 .searchnavbar ul li {

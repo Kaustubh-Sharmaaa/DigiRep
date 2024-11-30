@@ -8,6 +8,7 @@ import SearchNavbar from './SearchNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import ChatComponent from './ChatComponent';
+import Navbar from './NavBar';
 const TopThesis = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -148,6 +149,9 @@ const Sidebar = () => (
 );
 
 function extractUserId(user) {
+    if (user == null) {
+        return 0;
+    }
     switch (user.role) {
         case 'Advisor':
             return (user.advisorID);
@@ -346,11 +350,16 @@ function ThesisContent() {
                         <span>Published by: {thesis.authors}</span>
                         <div className='thesis-buttons'>
                             <button onClick={() => handleView(id)}><i class="fa fa-eye"></i>View</button>
-                            <button style={{ backgroundColor: liked ? 'rgb(0, 64, 255)' : '' }}
-                                onClick={handleLike}>
-                                {liked ? <FaThumbsDown color='white' /> : <FaThumbsUp color='white' />}
-                                {liked ? ' Unlike' : ' Like'} {thesis.likes}
-                            </button>
+                            {userData && (
+                                <button
+                                    style={{ backgroundColor: liked ? 'rgb(0, 64, 255)' : '' }}
+                                    onClick={handleLike}
+                                >
+                                    {liked ? <FaThumbsDown color="white" /> : <FaThumbsUp color="white" />}
+                                    {liked ? ' Unlike' : ' Like'} {thesis.likes}
+                                </button>
+                            )}
+
                             <div className='divider' />
                             <button onClick={() => handleDownload(thesis.thesisId)}><FaDownload />Download</button>
                         </div>
@@ -509,7 +518,7 @@ const ViewThesis = () => {
     }, []);
     return (
         <div>
-            <SearchNavbar />
+            {userData ? <SearchNavbar /> : <Navbar />}
             <br></br>
             <div className="thesis-field">
                 <Thesis />

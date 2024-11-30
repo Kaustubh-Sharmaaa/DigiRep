@@ -99,10 +99,10 @@ const AdvisorsApproved = () => {
 
             <fieldset className='dashboardfs'>
                 <div className='VerificationDashboard'>
-                    <h2>Advisors Accounts</h2>
-                    <div className='Verification'>
-                        <div className='blocksDashboard'>
-                            <h3>Approved Verification</h3>
+                    <h2>Approved Verification Advisors Accounts</h2>
+                    <div className='VerificationA'>
+                        <div className='blocksDashboardd'>
+                            <br></br>
                             <input
                                 type="text"
                                 className='inputsn' // Class for styling the input
@@ -111,14 +111,18 @@ const AdvisorsApproved = () => {
                                 onChange={handleSearch} // Update state on input change
                                 onKeyDown={handleApprovedAdvisorsSearchKeyDown} // Listen for the Enter key
                             />
-                            <button onClick={handleClearSearch}>Clear</button>
+                            <button onClick={handleClearSearch} className='clearbutton2'>Clear</button>
+                            <br>
+                            </br>
+                            <br></br>
                             {Array.isArray(advisorsApproved) && advisorsApproved.length > 0 ? (
-                                advisorsApproved.map(user => (
-                                    <div key={user.id} className="user-card">
+                                advisorsApproved.map((user,index) => (
+                                    <div key={user.id} className="updates-card">
+                                        <p>{index+1}</p>
                                         <p><strong>Name:</strong> {user.firstName} {user.lastName}</p>
                                         <p><strong>Email:</strong> {user.email}</p>
                                         <p><strong>Education:</strong> {user.education}</p>
-                                        <button onClick={() => handlePending(user.id)} className="button-approve">
+                                        <button onClick={() => handlePending(user.id)} className="pendingbutton2">
                                             Pending
                                         </button>
 

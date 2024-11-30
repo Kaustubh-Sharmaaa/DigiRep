@@ -238,6 +238,13 @@ main {
 .action-button:hover {
     background-color: var(--lightblue);
 }
+.Verificationn{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    height: 450px;
+}
 .Verification{
     display: flex;
     flex-direction: row;
@@ -245,12 +252,21 @@ main {
 
     height: 450px;
 }
+
+.VerificationA{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
 .blocksDashboard {
     width:100%;
     border: 1px solid blue;
     text-align: center;
 }
-
+.blocksDashboardd {
+    width:100%;
+    text-align: center;
+}
 .user-card{
     width: 100%;
     display: flex;
@@ -320,7 +336,53 @@ main {
 
 .dashboardmt{
     color: white;
-    height: 450px;
-    overflow-y: auto;
+    height: 2300px;
     background-color: #131313;
+}
+
+.pagination {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pagination button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.pagination button.active {
+    background-color: #383838;
+    color: white;
+    font-weight: bold;
+}
+
+.pagination button:hover:not(.active) {
+    background-color: #484848;
+    color: white;
+    border: 1px solid white;
+}
+.input33{
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    min-width: 800px;
+}
+.clearbutton2{
+    border-radius: 50px;
+    background-color: white;
+    color: #000000;
+    border: 1px solid black;
+    padding: 1%;
+}
+.clearbutton2:hover{
+    transform: scale(1.1);
+    background-color: rgb(176, 176, 176);
+    color: #000000;
 }

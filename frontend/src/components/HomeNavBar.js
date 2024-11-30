@@ -12,8 +12,7 @@ import { FaFilter } from "react-icons/fa";
 import '../css/HomeNavbar.css';
 import { FcStatistics } from "react-icons/fc";
 import { BsGraphUpArrow } from "react-icons/bs";
-
-const SearchNavbar = () => {
+const HomeNavbar = () => {
     const [searchTerm, setSearchTerm] = useState(''); // State to hold the search input
     const userData = JSON.parse(sessionStorage.getItem('user'));
     const navigate = useNavigate(); // Hook to programmatically navigate
@@ -88,14 +87,10 @@ const SearchNavbar = () => {
         navigate(`/viewthesis?query=${item.thesisId}`);
     };
 
-    const handleGoHome = () => {
-        navigate(`/`);
-    };
-
     return (
         <div className="searchnavbar">
             <div className="homenavbar-left-section">
-                <img src="images/lo.png" className="color-changing-image" onClick={()=>handleGoHome()}alt="Logo" />
+                <img src="images/lo.png" className="color-changing-image" alt="Logo" />
                 <span className="title">Digital Thesis Repository</span>
                 &nbsp;&nbsp;
 
@@ -127,34 +122,17 @@ const SearchNavbar = () => {
                 <Link to="/advance-search"><FaFilter className="homebaricon"/></Link>
                 &nbsp;&nbsp;
                 <Link to="/statistics"><BsGraphUpArrow className="homebaricon"/></Link>
+                &nbsp;
+
+                <Link to="/aboutus">About Us</Link>
                 &nbsp;&nbsp;
-                {userType === 'Student' && (
-                    <Link to="/student-thesis">My Theses</Link>
-                )}
-                {userType === 'Advisor' && (
-                    <Link to="/advisorDashboard">Dashboard</Link>
-                )}
-                {userType === 'Department Admin' && (
-                    <Link to="/departmentAdminDashboard">Dashboard</Link>
-                )}
+                <Link to="/contactus">Contact Us</Link>
                 &nbsp;&nbsp;
 
-                    
-
-                {/* Icons for notifications, profile, and logout */}
-                <NotificationsIcon />
+                
+                <button onClick={()=>navigate('/registerlogin')} className="button-85 loginbutton">Join Now</button>
                 &nbsp;&nbsp;
-                <div style={{ position: 'relative' }}>
-                    <Link to="/profilePage" className="picons">
-                        <CgProfile />
-                    </Link>
-                </div>
-                &nbsp;&nbsp;
-                <div style={{ position: 'relative' }}>
-                    <Link to="/" className="picons" onClick={handleLogout}>
-                        <IoLogOutOutline />
-                    </Link>
-                </div>
+                
             </div>
         </div>
     );
@@ -162,4 +140,4 @@ const SearchNavbar = () => {
 
 
 
-export default SearchNavbar; // Exporting the SearchNavbar component for use in other parts of the application
+export default HomeNavbar; // Exporting the SearchNavbar component for use in other parts of the application

@@ -4,6 +4,7 @@ import ThesisCard from "./ThesisCard";
 import SearchNavbar from "./SearchNavBar";
 import Footer from "./Footer"
 import ChatComponent from "./ChatComponent";
+import Navbar from "./NavBar";
 const AdvanceSearch = () => {
   const [userData, setUserData] = useState(null);
   useEffect(() => {
@@ -103,7 +104,7 @@ const AdvanceSearch = () => {
 
   return (
     <div>
-      <SearchNavbar />
+      {userData ? <SearchNavbar /> : <Navbar />}
       <br></br>
       <div className="advance-search-container">
         <div className="sidebar">

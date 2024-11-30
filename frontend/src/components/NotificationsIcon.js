@@ -7,8 +7,8 @@ const NotificationIcon = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0); // State to track unread notifications count
   const userData = JSON.parse(sessionStorage.getItem('user'));
-  const keys = Object.keys(userData);
-  const userid = userData[keys[1]];
+  const keys = userData? Object.keys(userData):null;
+  const userid = userData? userData[keys[1]]:null;
 
   // Fetch unread count and notifications periodically
   useEffect(() => {
