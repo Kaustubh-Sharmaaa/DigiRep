@@ -8,11 +8,107 @@ import SearchNavbar from './SearchNavBar';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import ChatComponent from './ChatComponent';
+import { jsPDF } from "jspdf";
 
 
 
 var curr_thesis_author = "";
-var curr_thesis_id = "";
+var is_thesis_published = true;
+
+const exportThesisDetails = async (thesis) => {
+    if (!thesis) {
+        console.error("Invalid thesis or comments data");
+        alert("Thesis details are incomplete or corrupted.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3001/api/get-comments/${thesis.thesisId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch comments');
+        }
+        const comments = await response.json();
+
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+
+        // Title of the document
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("Thesis Details", 10, 20);
+
+        // Thesis Information
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Title: ${thesis.title || "No Title Available"}`, 10, 30);
+        doc.text(`Author: ${thesis.authors || "No Author Available"}`, 10, 40);
+        doc.text(`Referenced Advisor: ${thesis.refadvisor} : ${thesis.refAdvisorAcceptance}`, 10, 50)
+        doc.text(`Submitted On: ${thesis.submittedDatetime.split('T')[0]}`, 10, 60)
+        doc.text(`Publish Satatus: ${thesis.publishStatus}`, 10, 70)
+        doc.text(
+            `Publish Date: ${thesis.publishDatetime ? thesis.publishDatetime.split('T')[0] : "Not yet published"}`,
+            10,
+            80
+        );
+
+        doc.text(`Number of Likes: ${thesis.likes || 0}`, 10, 90);
+        doc.text(`Number of Downloads: ${thesis.downloadsCount || 0}`, 10, 100);
+        //Keywords
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Keywords:", 10, 110);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${thesis.thesisKeywords}`, 10, 120)
+        //Abstract
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Abstract:", 10, 130);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "italic");
+        doc.text(`${thesis.abstract}`, 15, 140)
+        //Advisors Section
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Advisors:", 10, 150);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${thesis.advisor1} : ${thesis.req1ReviewStatus}`, 10, 160)
+        doc.text(`${thesis.advisor2} : ${thesis.req2ReviewStatus}`, 10, 170)
+        doc.text(`${thesis.advisor3} : ${thesis.req3ReviewStatus}`, 10, 180)
+        // Comments Section
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Comments:", 10, 190);
+
+        // Dynamically add comments
+        let yOffset = 200;
+        if (comments.length === 0) {
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "italic");
+            doc.text('No Comments', 10, yOffset);
+        }
+        else {
+            comments.forEach(comment => {
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${comment.name}:`, 10, yOffset);
+                yOffset += 10;
+                doc.setFont("helvetica", "italic");
+                doc.text(`${comment.commenttext}`, 15, yOffset);
+                yOffset += 10;
+            }
+            );
+        }
+
+        // Save the PDF
+        doc.save('Thesis_Details.pdf');
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        alert("Failed to fetch comments for exporting.");
+    }
+};
+
 
 const TopThesis = () => {
     const navigate = useNavigate();
@@ -158,15 +254,20 @@ const Sidebar = () => (
 );
 
 function extractUserId(user) {
-    switch (user.role) {
-        case 'Advisor':
-            return (user.advisorID);
-        case 'Student':
-            return (user.studentID);
-        case 'DepartmentAdmin':
-            return (user.departmentAdminID);
-        default:
-            return null;
+    if (!user) {
+        return (null);
+    }
+    else {
+        switch (user.role) {
+            case 'Advisor':
+                return (user.advisorID);
+            case 'Student':
+                return (user.studentID);
+            case 'DepartmentAdmin':
+                return (user.departmentAdminID);
+            default:
+                return null;
+        }
     }
 }
 
@@ -179,37 +280,59 @@ function ThesisContent() {
     const [liked, setLiked] = useState(false); // To track whether the thesis has been liked
     const [references, setReferences] = useState([]);
     const [advisors, setAdvisors] = useState([]);
-
+    const [comments, setComments] = useState([]);
+    const [commentText, setCommentText] = useState('');
 
     const userData = JSON.parse(sessionStorage.getItem('user'));
     const userId = extractUserId(userData);
 
     useEffect(() => {
         const fetchThesisData = async () => {
-            const response = await fetch(`http://localhost:3001/api/view-thesis/${id}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.thesisKeywords) {
-                data.thesisKeywords = data.thesisKeywords.join(', ');
-            }
-            setThesis(data);
-            console.log("Thesis Data : ", data)
-            fetchAdvisors([data.adv1, data.adv2, data.adv3]);
-
-            // Fetch whether the user has liked this thesis
-            const likeResponse = await fetch(`http://localhost:3001/api/check-like/${id}/${userId}`);
-            if (likeResponse.ok) {
-                const likeData = await likeResponse.json();
-                setLiked(likeData.liked);
+            try {
+                const response = await fetch(`http://localhost:3001/api/view-thesis/${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.thesisKeywords) {
+                    data.thesisKeywords = data.thesisKeywords.join(', ');
+                }
+                setThesis(data);
+                if (data.publishStatus != 'APPROVED') {
+                    is_thesis_published = false;
+                }  // Set thesis data
+            } catch (error) {
+                console.error("Error fetching thesis data:", error);
             }
         };
 
         if (id) {
             fetchThesisData();
         }
-    }, [id, userId]);
+    }, [id]);  // Dependency only on id
+    useEffect(() => {
+        const fetchAdvisorsAndCheckLike = async () => {
+            // Fetch advisors if thesis data is available and contains advisor IDs
+            if (thesis && (thesis.adv1 || thesis.adv2 || thesis.adv3)) {
+                const advisorIds = [thesis.adv1, thesis.adv2, thesis.adv3].filter(Boolean);
+                fetchAdvisors(advisorIds);
+            }
+
+            if (userId) {
+                try {
+                    const likeResponse = await fetch(`http://localhost:3001/api/check-like/${id}/${userId}`);
+                    if (likeResponse.ok) {
+                        const likeData = await likeResponse.json();
+                        setLiked(likeData.liked);
+                    }
+                } catch (error) {
+                    console.error('Error checking like status:', error);
+                }
+            }
+        };
+
+        fetchAdvisorsAndCheckLike();
+    }, [thesis, userId]);
 
     useEffect(() => {
         if (thesis && thesis.refThesisID && thesis.refThesisID.length > 0) {
@@ -234,39 +357,66 @@ function ThesisContent() {
 
 
     function handleLike() {
-        if (thesis) {
-            const newLikedState = !liked;
-            setLiked(newLikedState);
-
-            // API to update the database on like or unlike action
-            fetch(`http://localhost:3001/api/toggle-like`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId, thesisId: id, liked: newLikedState }),
-            })
-                .then(response => response.json())
-                .then(() => {
-                    setThesis({ ...thesis, likes: newLikedState ? thesis.likes + 1 : thesis.likes - 1 });
-                })
-                .catch(error => console.error('Error updating like status:', error));
+        if (!userId) {
+            alert("Cannot like without signing in.");
+            return;
         }
+        const newLikedState = !liked;
+        setLiked(newLikedState);
+
+        // Toggle the liked status on the server
+        fetch(`http://localhost:3001/api/toggle-like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, thesisId: id, liked: newLikedState }),
+        })
+            .then(response => response.json())
+            .then(() => {
+                setThesis(prevThesis => ({
+                    ...prevThesis,
+                    likes: newLikedState ? prevThesis.likes + 1 : prevThesis.likes - 1
+                }));
+            })
+            .catch(error => console.error('Error updating like status:', error));
     }
+
 
     const fetchAdvisors = async (advisorIds) => {
         try {
-            console.log("Advisor id = ", advisorIds)
-            const uniqueIds = [...new Set(advisorIds)]; // Remove duplicates
+            const uniqueIds = [...new Set(advisorIds.filter(id => id))]; // Remove duplicates and null/undefined values
             const promises = uniqueIds.map(id =>
                 fetch(`http://localhost:3001/api/getadvisor/${id}`).then(res => res.json())
             );
             const advisorsData = await Promise.all(promises);
-            setAdvisors(advisorsData);
+
+            // Safely handle advisor data and associate reviewStatus
+            const updatedAdvisors = advisorsData.map((advisor, index) => {
+                const reviewStatusKey = `req${index + 1}ReviewStatus`; // Dynamically access the review status
+                return {
+                    ...advisor,
+                    reviewStatus: thesis && thesis[reviewStatusKey] !== undefined
+                        ? thesis[reviewStatusKey]
+                        : 'cant find' // Set a default value if the status is not available
+                };
+            });
+
+            setAdvisors(updatedAdvisors);
+            console.log("ADVISOR DATA: ", updatedAdvisors);
+            console.log(thesis['req1ReviewStatus'])
         } catch (error) {
             console.error('Error fetching advisors:', error);
         }
     };
+
+
+
+
+    const renderAdvisors = () => {
+        return advisors.map(advisor => (<div> {advisor.firstName} {advisor.lastName}: {advisor.reviewStatus} </div>))
+    };
+
 
     const handleDownload = (id) => {
         fetch(`http://localhost:3001/api/download/${id}`)
@@ -312,10 +462,6 @@ function ThesisContent() {
             });
     };
 
-    const renderAdvisors = () => {
-        return advisors.map(advisor => `${advisor.firstName} ${advisor.lastName}`).join(', ');
-    };
-
     const getContent = () => {
         if (!thesis) {
             return 'Error! Try again!';
@@ -329,8 +475,8 @@ function ThesisContent() {
             case 'References':
                 return (
                     <div>
-                        <b>References:</b>
-                        <p>{references.length > 0 ? references.join(', ') : 'No references available'}</p>
+                        <b>Referenced Advisor:</b>
+                        <p>{thesis.refadvisor}: {thesis.refAdvisorAcceptance}</p>
                         <b>Reviewed By:</b>
                         <p>{renderAdvisors()}</p>
                     </div>
@@ -347,22 +493,41 @@ function ThesisContent() {
         }
     };
 
+    const handleExportDetails = () => {
+        if (!thesis) {
+            alert("Thesis details are incomplete.");
+            return;
+        }
+        console.log("thesis data being passed: ", thesis);
+        exportThesisDetails(thesis);
+    };
+
     return (
         <div className="thesis-content">
             {thesis ? (
                 <>
                     <h1 className="Thesis-title">{thesis.title}<br /></h1>
                     <div className="meta">
-                        <span>Published by: {thesis.authors}</span>
+                        <span>
+                            {thesis.publishStatus === 'APPROVED' ?
+                                `Published by: ${thesis.authors} on ${thesis.publishDatetime.split('T')[0]}` :
+                                `Submitted by: ${thesis.authors} on ${thesis.submittedDatetime.split('T')[0]}`
+                            }
+                        </span>
                         <div className='thesis-buttons'>
                             <button onClick={() => handleView(id)}><i class="fa fa-eye"></i>View</button>
-                            <button style={{ backgroundColor: liked ? 'rgb(0, 64, 255)' : '' }}
-                                onClick={handleLike}>
+                            <button
+                                onClick={() => handleLike()}
+                                style={{ backgroundColor: liked ? 'rgb(0, 64, 255)' : '' }}
+                            >
                                 {liked ? <FaThumbsDown color='white' /> : <FaThumbsUp color='white' />}
-                                {liked ? ' Unlike' : ' Like'} {thesis.likes}
+                                {liked ? ' Unlike' : ' Like'} {thesis?.likes ?? 0}
                             </button>
+
+
                             <div className='divider' />
                             <button onClick={() => handleDownload(thesis.thesisId)}><FaDownload />Download</button>
+                            <button onClick={() => handleExportDetails()}>Export Details</button>
                         </div>
                     </div>
                     <div className="tabs">
@@ -486,15 +651,21 @@ const Comments = () => {
                 )}
             </div>
 
-            <form className="comment-form" onSubmit={handleCommentSubmit}>
-                <textarea
-                    placeholder="Add a comment..."
-                    required
-                    value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
-                ></textarea>
-                <button type="submit" className='Comment-submit'>Post Comment</button>
-            </form>
+            {userId && is_thesis_published ? (
+                <form className="comment-form" onSubmit={handleCommentSubmit}>
+                    <textarea
+                        placeholder="Add a comment..."
+                        required
+                        value={commentText}
+                        onChange={e => setCommentText(e.target.value)}
+                    ></textarea>
+                    <button type="submit" className='Comment-submit'>Post Comment</button>
+                </form>
+            ) : (
+                !is_thesis_published ? (<p>Comments are disabled. Please wait for the thesis to be published.</p>) : (
+                    <p>Comments are disabled. Please <a href="RegisterLogin">log in</a> to post comments.</p>)
+            )}
+
         </div>
     );
 };

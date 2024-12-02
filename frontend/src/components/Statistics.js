@@ -1,8 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Footer from './Footer';
 import '../css/Statistics.css';
-import { useLocation } from 'react-router-dom';
-import ThesisCard from './ThesisCard';
 import SearchNavbar from './SearchNavBar';
 import ChatComponent from './ChatComponent';
 import Chat from './Chat';

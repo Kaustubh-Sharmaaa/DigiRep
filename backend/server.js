@@ -1081,7 +1081,7 @@ app.post('/api/publish-thesis/:thesisId', (req, res) => {
 });
 
 app.get('/api/getLatestUpdates', (req, res) => {
- 
+
 
   const query = `
       SELECT 
@@ -1091,12 +1091,12 @@ app.get('/api/getLatestUpdates', (req, res) => {
   `;
 
   db.query(query, (err, results) => {
-      if (err) {
-          console.error('Error fetching latest updates:', err);
-          res.status(500).json({ error: 'Failed to fetch latest updates' });
-      } else {
-          res.json(results);
-      }
+    if (err) {
+      console.error('Error fetching latest updates:', err);
+      res.status(500).json({ error: 'Failed to fetch latest updates' });
+    } else {
+      res.json(results);
+    }
   });
 });
 
@@ -2765,8 +2765,47 @@ app.get('/api/view-thesis/:id', (req, res) => {
   }
   id = id.slice(1);
   console.log(id);
-  const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.req1ReviewAdvisorId as adv1, t.req2ReviewAdvisorId as adv2, t.req3ReviewAdvisorId as adv3, t.refThesisID, t.thesisKeywords, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.id = ?;";
-
+  // const query = "SELECT t.thesisId, t.title, t.abstract, t.studentId, t.downloadsCount, t.publishDatetime, t.refAdvisorId, t.refAdvisorAcceptance, t.req1ReviewAdvisorId as adv1, t.req1ReviewStatus, t.req2ReviewStatus, t.req3ReviewStatus, t.req2ReviewAdvisorId as adv2, t.req3ReviewAdvisorId as adv3, t.refThesisID, t.thesisKeywords, t.likesCount as likes, CONCAT(s.firstName, ' ', s.lastName) AS authors FROM thesis t JOIN students s ON t.studentId = s.studentID WHERE t.id = ?;";
+  const query = `SELECT 
+    t.thesisId,
+    t.title,
+    t.abstract,
+    t.studentId,
+    t.downloadsCount,
+    t.publishDatetime,
+    t.refAdvisorId,
+    t.refAdvisorAcceptance,
+    t.publishStatus,
+    t.submittedDatetime,
+    t.req1ReviewAdvisorId as adv1,
+    t.req2ReviewAdvisorId as adv2,
+    t.req3ReviewAdvisorId as adv3,
+    CONCAT(a4.firstName, ' ', a4.lastName) AS refadvisor,
+    CONCAT(a1.firstName, ' ', a1.lastName) AS advisor1,
+    t.req1ReviewStatus,
+    CONCAT(a2.firstName, ' ', a2.lastName) AS advisor2,
+    t.req2ReviewStatus,
+    CONCAT(a3.firstName, ' ', a3.lastName) AS advisor3,
+    t.req3ReviewStatus,
+    t.refThesisID,
+    t.thesisKeywords,
+    t.likesCount as likes,
+    CONCAT(s.firstName, ' ', s.lastName) AS authors
+FROM 
+    thesis t 
+JOIN 
+    students s ON t.studentId = s.studentID
+LEFT JOIN 
+    advisors a1 ON t.req1ReviewAdvisorId = a1.advisorID
+LEFT JOIN 
+    advisors a2 ON t.req2ReviewAdvisorId = a2.advisorID
+LEFT JOIN 
+    advisors a3 ON t.req3ReviewAdvisorId = a3.advisorID
+LEFT JOIN
+    advisors a4 ON t.refAdvisorId = a4.advisorID
+WHERE 
+    t.id = ?;
+`
   db.query(query, [id], (err, results) => {
     if (err) {
       return res.json({ error: err.message });
